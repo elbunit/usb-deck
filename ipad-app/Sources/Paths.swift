@@ -6,6 +6,7 @@ import UIKit
 struct PathsView: View {
     @EnvironmentObject var conn: Connection
     @AppStorage("usbdeck.pathEnter") private var pressEnter = true
+    @AppStorage("usbdeck.pathTapOpens") private var tapOpens = false
     @State private var flashed: String?
     @State private var showExplorer = false
     @State private var confirmDelete: PathItem?
@@ -15,15 +16,24 @@ struct PathsView: View {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Rrugët").font(.system(size: 22, weight: .bold))
-                    Text("Kliko në PC te fusha (p.sh. “Save As”), pastaj prek rrugën këtu.")
+                    Text(tapOpens ? "Prek një rrugë për ta hapur dosjen në PC."
+                                  : "Kliko në PC te fusha (p.sh. “Save As”), pastaj prek rrugën këtu.")
                         .font(.system(size: 12)).foregroundColor(Theme.textDim)
                 }
                 Spacer()
-                Toggle(isOn: $pressEnter) {
-                    Text("Enter pas").font(.system(size: 13, weight: .semibold))
+                Picker("", selection: $tapOpens) {
+                    Text("Vendos rrugën").tag(false)
+                    Text("Hap dosjen").tag(true)
                 }
-                .toggleStyle(SwitchToggleStyle(tint: Theme.accent))
-                .fixedSize()
+                .pickerStyle(.segmented)
+                .frame(width: 250)
+                if !tapOpens {
+                    Toggle(isOn: $pressEnter) {
+                        Text("Enter pas").font(.system(size: 13, weight: .semibold))
+                    }
+                    .toggleStyle(SwitchToggleStyle(tint: Theme.accent))
+                    .fixedSize()
+                }
                 Button {
                     conn.requestExplorerFolders()
                     showExplorer = true
@@ -56,9 +66,11 @@ struct PathsView: View {
                     }
                     .padding(.bottom, 8)
                 }
-                Text(pressEnter
-                     ? "“Enter pas” është ndezur: në “Save As” të çon direkt te dosja. Fike nëse do vetëm ta ngjitësh tekstin."
-                     : "Vetëm e ngjit rrugën (pa Enter). Mbaj gishtin mbi një rrugë për më shumë.")
+                Text(tapOpens
+                     ? "Prekja hap dosjen në Explorer. Butoni ⌨︎ në çdo rrugë e vendos rrugën te fusha ku je."
+                     : pressEnter
+                     ? "“Enter pas” është ndezur: në “Save As” të çon direkt te dosja. Butoni ↗ në çdo rrugë e hap dosjen."
+                     : "Vetëm e ngjit rrugën (pa Enter). Butoni ↗ në çdo rrugë e hap dosjen.")
                     .font(.system(size: 11)).foregroundColor(Theme.textDim)
             }
         }
@@ -78,7 +90,7 @@ struct PathsView: View {
         let missing = item.exists == false
         return Button {
             flashed = item.id
-            conn.insertPath(item.id, enter: pressEnter)
+            if tapOpens { conn.revealPath(item.id) } else { conn.insertPath(item.id, enter: pressEnter) }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { if flashed == item.id { flashed = nil } }
         } label: {
             HStack(spacing: 12) {
@@ -97,6 +109,8 @@ struct PathsView: View {
                         .truncationMode(.head)
                 }
                 Spacer(minLength: 0)
+                // the "other" action, one tap away
+                Color.clear.frame(width: 40, height: 40)
             }
             .padding(.horizontal, 14).padding(.vertical, 12)
             .frame(maxWidth: .infinity, minHeight: 70, alignment: .leading)
@@ -108,6 +122,21 @@ struct PathsView: View {
             .animation(.easeOut(duration: 0.12), value: flashed)
             .foregroundColor(.white)
         }
+        .overlay(
+            Button {
+                flashed = item.id
+                if tapOpens { conn.insertPath(item.id, enter: pressEnter) } else { conn.revealPath(item.id) }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { if flashed == item.id { flashed = nil } }
+            } label: {
+                Image(systemName: tapOpens ? "keyboard" : "arrow.up.forward.app")
+                    .font(.system(size: 17, weight: .semibold))
+                    .frame(width: 40, height: 40)
+                    .background(Circle().fill(Color.white.opacity(0.08)))
+                    .foregroundColor(.white)
+            }
+            .padding(.trailing, 12),
+            alignment: .trailing
+        )
         .contextMenu {
             Button { conn.insertPath(item.id, enter: !pressEnter) } label: {
                 Label(pressEnter ? "Vendose pa Enter" : "Vendose me Enter", systemImage: "text.insert")
