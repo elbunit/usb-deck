@@ -42,14 +42,21 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+# COM in multi-threaded mode: comtypes defaults to single-threaded apartments, and a
+# volume-mixer object freed by the garbage collector on another thread (e.g. while
+# sending keys) crashed the whole agent with an access violation.
+sys.coinit_flags = 0  # COINIT_MULTITHREADED - must be set before comtypes is imported
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from audio import AUDIO_COMMANDS, AudioService  # noqa: E402
+from audio import AUDIO_COMMANDS, AudioService, describe  # noqa: E402
+from updater import Updater  # noqa: E402
+from tray import Tray  # noqa: E402
 from render_watch import RenderWatcher  # noqa: E402
 from extras import DEFAULT_TC_START, FileReceiver, read_clipboard, timecode_steps  # noqa: E402
 from features import (BrandStore, DEFAULT_TEMPLATE, ProjectIndex, TimeTracker, copy_to_clipboard,  # noqa: E402
                       create_project, hex_to_rgb01, list_logos, logos_dir, open_path, send_document,
-                      take_screenshot)
+                      take_screenshot, safe_name, LOGO_EXT, expand as _fexpand)
 from launcher import AppCatalog, launch, running_exes  # noqa: E402
+import paths as pathmod  # noqa: E402
 from screen import ScreenStreamer  # noqa: E402
 from media import MediaService  # noqa: E402
 from ai import MODELS as AI_MODELS, Assistant  # noqa: E402
@@ -57,7 +64,7 @@ import beats as beatmod  # noqa: E402
 from ppro import PremiereBridge, install_panel  # noqa: E402
 from scopes import ScopesService  # noqa: E402
 
-VERSION = "1.8.0"
+VERSION = "2.1.0"
 IPAD_PORT = 2345
 USBMUXD_ADDR = ("127.0.0.1", 27015)
 
@@ -69,6 +76,9 @@ TIMELOG_FILE = HERE / "timelog.json"
 EXPRESSIONS_FILE = HERE / "expressions.json"
 APPS_CACHE_FILE = HERE / "apps_cache.json"
 BACKUP_DIR = HERE / "backups"
+USAGE_FILE = HERE / "usage.json"
+PATHS_FILE = HERE / "paths.json"
+LOG_FILE = HERE / "agent.log"
 AE_SCRIPTS_DIR = HERE / "ae-scripts"
 WEB_DIR = HERE / "web"
 
@@ -113,10 +123,18 @@ def status(msg: str) -> None:
 # Keyboard output
 # --------------------------------------------------------------------------- #
 
-try:
-    import keyboard as _kb  # type: ignore
-except Exception:  # pragma: no cover - missing lib or no permission
-    _kb = None
+_kb = None
+if os.name == "nt":
+    try:
+        import winkeys as _kb  # SendInput with proper extended keys (arrows, Home, End...)
+    except Exception as _e:  # pragma: no cover
+        print(f"winkeys nuk u ngarkua ({_e}), po provoj 'keyboard'")
+        _kb = None
+if _kb is None:
+    try:
+        import keyboard as _kb  # type: ignore
+    except Exception:  # pragma: no cover - missing lib or no permission
+        _kb = None
 
 
 class KeySender:
@@ -128,16 +146,41 @@ class KeySender:
             log("KUJDES: libraria 'keyboard' mungon - po punoj ne 'dry-run' (vetem shfaq tastet).")
             log("        Instaloje me:  python -m pip install keyboard")
 
+    _CONSOLES = {"windowsterminal.exe", "conhost.exe", "openconsole.exe", "cmd.exe",
+                 "powershell.exe", "pwsh.exe"}
+    _warned = 0.0
+
+    def _console_focused(self) -> bool:
+        """True when the agent's own black window is in front: keys sent there
+        (Ctrl+C, Space, Enter...) would stop or freeze the agent, so we skip them."""
+        if self.dry:
+            return False
+        exe = foreground_exe()
+        if exe in self._CONSOLES:
+            now = time.time()
+            if now - self._warned > 3:
+                self._warned = now
+                log("Tastet u anashkaluan: dritarja e zezë është përpara. Kliko te Premiere/AE/Resolve.")
+            return True
+        return False
+
     def tap(self, combo: str) -> None:
         combo = combo.strip()
         if not combo:
             return
+        if self._console_focused():
+            return
         if self.dry:
             log(f"  [taste] {combo}")
             return
-        _kb.send(combo)
+        try:
+            _kb.send(combo)
+        except ValueError as e:
+            log(f"  Tasti nuk u dërgua: {e}")
 
     def press(self, combo: str) -> None:
+        if self._console_focused():
+            return
         if self.dry:
             log(f"  [mbaj] {combo}")
             return
@@ -153,6 +196,8 @@ class KeySender:
             pass
 
     def write(self, text: str) -> None:
+        if self._console_focused():
+            return
         if self.dry:
             log(f"  [tekst] {text!r}")
             return
@@ -256,6 +301,12 @@ def normalize_config(cfg: dict) -> dict:
     settings.setdefault("ppro_export_folder", "")
     settings.setdefault("logos_folder", "%USERPROFILE%\\Documents\\USB Deck Logos")
     settings.setdefault("scopes_fps", 10)
+    settings.setdefault("guard_foreground", True)
+    settings.setdefault("favorites_page", True)
+    settings.setdefault("update_repo", "elbunit/usb-deck")
+    settings.setdefault("update_branch", "main")
+    settings.setdefault("update_token", "")
+    settings.setdefault("update_auto_check", True)
     settings.setdefault("ai_model", "gemma3:4b")
     settings.setdefault("beats_fps", 25)
     settings.setdefault("screen_fps", 20)
@@ -328,7 +379,35 @@ def normalize_config(cfg: dict) -> dict:
     return cfg
 
 
-def ipad_view(cfg: dict) -> dict:
+FAV_PAGE_NAME = "⭐ Më të përdorurit"
+
+
+def favorite_ids(cfg: dict, p: dict, usage: dict | None) -> list[str]:
+    """Most-pressed buttons of a profile, kept in their original layout order (stable grid)."""
+    if not usage or not cfg["settings"].get("favorites_page", True):
+        return []
+    counts = usage.get(p["id"]) or {}
+    order, pos = [], 0
+    for pg in p.get("pages", []):
+        for b in pg.get("buttons", []):
+            if b and counts.get(b["id"], 0) >= 3:
+                order.append((pos, b["id"]))
+            pos += 1
+    if len(order) < 4:
+        return []
+    grid = p.get("grid") or cfg["settings"]["grid"]
+    cap = max(4, int(grid.get("rows", 4)) * int(grid.get("cols", 5)))
+    top = sorted(order, key=lambda t: -counts[t[1]])[:cap]
+    return [bid for _, bid in sorted(top)]
+
+
+def _button_view(b: dict) -> dict:
+    return {"id": b["id"], "label": b.get("label", ""),
+            "symbol": b.get("symbol") or None, "color": b.get("color") or None,
+            "mode": b.get("mode", "tap")}
+
+
+def ipad_view(cfg: dict, usage: dict | None = None) -> dict:
     """What the iPad needs: labels, icons, colors - no key bindings."""
     out = {"grid": cfg["settings"]["grid"], "profiles": [],
            "transfer_folder": os.path.expandvars(str(cfg["settings"].get("transfer_folder", "")))}
@@ -348,18 +427,63 @@ def ipad_view(cfg: dict) -> dict:
                 if not b:
                     buttons.append(None)
                 else:
-                    buttons.append({
-                        "id": b["id"], "label": b.get("label", ""),
-                        "symbol": b.get("symbol") or None, "color": b.get("color") or None,
-                        "mode": b.get("mode", "tap"),
-                    })
+                    buttons.append(_button_view(b))
             pages.append({"name": pg.get("name", "Faqja"), "buttons": buttons})
+        fav = favorite_ids(cfg, p, usage)
+        if fav:
+            by_id = {b["id"]: b for pg in p.get("pages", []) for b in pg.get("buttons", []) if b}
+            pages.insert(0, {"name": FAV_PAGE_NAME, "buttons": [_button_view(by_id[i]) for i in fav]})
         out["profiles"].append({
             "id": p["id"], "name": p["name"], "color": p.get("color") or None,
             "symbol": p.get("symbol") or None, "grid": p.get("grid") or None,
             "pages": pages, "jog": jog_info, "ease": bool(p.get("ease")),
         })
     return out
+
+
+class UsageStore:
+    """How often each button is pressed (for the ⭐ page). usage.json: {profile: {button: count}}."""
+
+    def __init__(self, path: Path) -> None:
+        self.path = path
+        self.lock = threading.Lock()
+        self.dirty = False
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            self.data = {str(k): {str(b): int(c) for b, c in v.items()} for k, v in data.items() if isinstance(v, dict)}
+        except (OSError, ValueError, AttributeError):
+            self.data = {}
+
+    def hit(self, pid: str, bid: str) -> None:
+        with self.lock:
+            prof = self.data.setdefault(pid, {})
+            prof[bid] = prof.get(bid, 0) + 1
+            self.dirty = True
+
+    def snapshot(self) -> dict:
+        with self.lock:
+            return {k: dict(v) for k, v in self.data.items()}
+
+    def save(self) -> None:
+        with self.lock:
+            if not self.dirty:
+                return
+            data = json.dumps(self.data, ensure_ascii=False)
+            self.dirty = False
+        try:
+            tmp = self.path.with_suffix(".tmp")
+            tmp.write_text(data, encoding="utf-8")
+            os.replace(tmp, self.path)
+        except OSError:
+            pass
+
+    def reset(self, pid: str | None = None) -> None:
+        with self.lock:
+            if pid:
+                self.data.pop(pid, None)
+            else:
+                self.data = {}
+            self.dirty = True
 
 
 class ConfigStore:
@@ -877,6 +1001,15 @@ class Agent:
         self.beat_result: dict | None = None
         self.media = MediaService(lambda st: self.link.send({"type": "media", **st}),
                                   lambda pos: self.link.send(pos), log)
+        self.usage = UsageStore(USAGE_FILE)
+        self.paths = pathmod.PathStore(PATHS_FILE)
+        self._fav_sig = ""
+        self._fav_pushed = 0.0
+        self._guard_warned = 0.0
+        self.updater = Updater(HERE, VERSION, log)
+        self.tray = None
+        self.restart_hook = None   # set by main(): restarts the whole process
+        self.ipad_expires: float | None = None
 
     def launchers(self) -> list[dict]:
         items = self.store.get()["settings"].get("launchers")
@@ -992,6 +1125,7 @@ class Agent:
             for e in self.expressions]})
         self.push_projects()
         self.push_launchers()
+        self.push_paths()
         self.link.send({"type": "media", **self.media.full_state()})
         if self.beat_result:
             self.link.send({"type": "beats_result", **self.beat_result})
@@ -1139,6 +1273,10 @@ class Agent:
         if t == "launchers_request":
             self.push_launchers()
             return
+        if t in ("paths_request", "path_insert", "path_reveal", "path_copy", "path_delete",
+                 "path_add", "paths_explorer"):
+            self.handle_paths(t, msg)
+            return
         if t == "launch":
             items = self.launchers()
             i = int(msg.get("index", -1))
@@ -1216,7 +1354,177 @@ class Agent:
             else:
                 self.engine.jobs.put(lambda: self.engine.run_steps(steps))
             return
+        if t == "hello":
+            self.on_hello(msg)
+            return
+        if t == "button" and msg.get("event") == "down":
+            pid, bid = str(msg.get("profile")), str(msg.get("button"))
+            b = self.store.button(pid, bid)
+            if b and not self.guard(pid, b.get("actions", [])):
+                return
+            if b:
+                self.usage.hit(pid, bid)
+        elif t in ("jog", "transport"):
+            if not self.guard(str(msg.get("profile")), [{"keys": "x"}]):
+                return
         self.engine.handle(msg)
+
+    def on_hello(self, msg: dict) -> None:
+        log("iPad-i u prezantua (aplikacioni USB Deck).")
+        try:
+            exp = float(msg.get("expires") or 0)
+        except (TypeError, ValueError):
+            exp = 0
+        self.ipad_expires = exp or None
+        if not exp:
+            return
+        left = exp - time.time()
+        when = time.strftime("%d.%m %H:%M", time.localtime(exp))
+        if left < 36 * 3600:
+            text = ("Aplikacioni në iPad ka skaduar" if left <= 0 else f"Aplikacioni në iPad skadon më {when}") + \
+                   " – rinstaloje me Sideloadly."
+            log("⏳ " + text)
+            if self.tray:
+                self.tray.notify(text)
+        else:
+            log(f"Aplikacioni në iPad vlen deri më {when}.")
+
+    # -- folder path shortcuts ("Rrugët") --
+    def push_paths(self) -> None:
+        self.link.send({"type": "paths", "items": self.paths.view()})
+
+    def handle_paths(self, t: str, msg: dict) -> None:
+        if t == "paths_request":
+            return self.push_paths()
+        if t == "paths_explorer":
+            def scan() -> None:
+                items = pathmod.explorer_folders()
+                self.link.send({"type": "paths_explorer", "items": items})
+            threading.Thread(target=scan, daemon=True).start()
+            return
+        if t == "path_add":
+            item = self.paths.add(str(msg.get("path", "")), str(msg.get("name", "")))
+            if item:
+                self.engine.toast(f"📁 “{item['name']}” u shtua te Rrugët")
+            return self.push_paths()
+        item = self.paths.get(str(msg.get("id", "")))
+        if not item:
+            return self.push_paths()
+        full = pathmod.resolve(item["path"])
+        if t == "path_delete":
+            self.paths.remove(item["id"])
+            return self.push_paths()
+        if t == "path_reveal":
+            if os.path.exists(full):
+                open_path(Path(full))
+            else:
+                self.engine.toast(f"⚠ Dosja nuk ekziston: {full}")
+            return
+        if t == "path_copy":
+            copy_to_clipboard(full)
+            self.engine.toast("📋 Rruga u kopjua në PC")
+            return
+        if t == "path_insert":
+            enter = bool(msg.get("enter"))
+            self.engine.jobs.put(lambda: self._insert_path(item["name"], full, enter))
+
+    def _insert_path(self, name: str, full: str, enter: bool) -> None:
+        """Paste the path into whatever field has focus (clipboard + Ctrl+V: fast and works
+        with any keyboard layout), then put the previous clipboard text back."""
+        if not self.engine_keys_ok():
+            return
+        before = read_clipboard()
+        if copy_to_clipboard(full):
+            time.sleep(0.05)
+            KEYS.tap("ctrl+v")
+        else:
+            KEYS.write(full)
+        if enter:
+            time.sleep(0.15)
+            KEYS.tap("enter")
+        self.engine.toast(f"📁 {name}")
+        if before and before != full:
+            time.sleep(0.6)
+            copy_to_clipboard(before)
+
+    def engine_keys_ok(self) -> bool:
+        if KEYS.dry:
+            log(f"  [rruga] (dry-run)")
+            return True
+        if KEYS._console_focused():
+            self.engine.toast("⚠ Kliko te fusha ku do ta vendosësh rrugën (dritarja e zezë është përpara)")
+            return False
+        return True
+
+    # -- "wrong program in front" guard --
+    def guard(self, pid: str, actions: list) -> bool:
+        """False (and a toast on the iPad) when a program-specific button would send keys
+        to a different program - e.g. Premiere's Ctrl+K landing in Chrome."""
+        if not self.store.get()["settings"].get("guard_foreground", True):
+            return True
+        if not any(isinstance(a, dict) and ("keys" in a or "text" in a) for a in actions):
+            return True              # volume, screenshot, scripts... work from anywhere
+        p = self.store.profile(pid)
+        apps = [a.lower() for a in (p or {}).get("apps", [])]
+        fg = self.foreground
+        if not p or not apps or not fg or "explorer.exe" in apps or fg in apps:
+            return True
+        if fg in KeySender._CONSOLES:
+            return True              # KeySender already skips + explains this case
+        now = time.time()
+        if now - self._guard_warned > 1.5:
+            self._guard_warned = now
+            fg_name = describe(fg)[0]
+            self.engine.toast(f"⚠ {p['name']} nuk është përpara (tani: {fg_name}) – kliko te {p['name']}")
+        return False
+
+    def fav_signature(self) -> str:
+        cfg = self.store.get()
+        snap = self.usage.snapshot()
+        return json.dumps([favorite_ids(cfg, p, snap) for p in cfg["profiles"]])
+
+    def favorites_loop(self) -> None:
+        """Every minute: save usage; refresh the ⭐ page on the iPad when it changes (max every 5 min)."""
+        while not self.stop.wait(60):
+            self.usage.save()
+            if not self.link.connected or self.engine.held:
+                continue
+            if time.time() - self._fav_pushed < 300:
+                continue
+            if self.fav_signature() != self._fav_sig:
+                log("Faqja ⭐ Më të përdorurit u përditësua")
+                self.push_config()
+
+    # -- self-update --
+    def update_loop(self) -> None:
+        if self.stop.wait(45):
+            return
+        notified = None
+        while True:
+            s = self.store.get()["settings"]
+            if s.get("update_auto_check", True):
+                st = self.updater.check(s.get("update_repo", ""), s.get("update_branch", "main"), s.get("update_token", ""))
+                if st["available"] and notified != st["latest"]:
+                    notified = st["latest"]
+                    log(f"Ka version të ri: v{st['latest']} (ti ke v{VERSION}). Instaloje nga editori ose ikona pranë orës.")
+                    self.engine.toast(f"⬆ USB Deck v{st['latest']} është gati – instaloje nga PC-ja")
+                    if self.tray:
+                        self.tray.notify(f"Versioni v{st['latest']} është gati. Kliko ikonën › Instalo përditësimin.")
+            if self.stop.wait(6 * 3600):
+                return
+
+    def apply_update(self) -> str:
+        s = self.store.get()["settings"]
+        st = self.updater.check(s.get("update_repo", ""), s.get("update_branch", "main"), s.get("update_token", ""))
+        if st["error"]:
+            raise RuntimeError(st["error"])
+        if not st["available"]:
+            return f"Ke versionin më të ri (v{VERSION})."
+        msg = self.updater.apply(s.get("update_repo", ""), s.get("update_branch", "main"), s.get("update_token", ""))
+        self.engine.toast("⬆ " + msg)
+        if self.restart_hook:
+            threading.Timer(1.5, self.restart_hook).start()
+        return msg
 
     # -- audio / render events --
     def on_audio(self, state: dict) -> None:
@@ -1237,7 +1545,9 @@ class Agent:
 
     # -- iPad messages --
     def push_config(self) -> None:
-        self.link.send({"type": "config", "config": ipad_view(self.store.get())})
+        self.link.send({"type": "config", "config": ipad_view(self.store.get(), self.usage.snapshot())})
+        self._fav_sig = self.fav_signature()
+        self._fav_pushed = time.time()
         self.push_active(force=True)
         self.push_extras()
         if self.audio.state.get("available"):
@@ -1328,7 +1638,7 @@ class Agent:
                 status("!  Lidhja me iPad-in u nderpre - po pres rilidhjen…")
             time.sleep(0.5)
 
-    def run(self, open_browser: bool) -> None:
+    def run(self, open_browser: bool, tray: bool = False) -> None:
         log(f"USB Deck agjenti v{VERSION}")
         self.audio.start()
         self.render_watch.start()
@@ -1339,24 +1649,59 @@ class Agent:
         self.media.start()
         self.scopes.start()
         threading.Thread(target=self.ppro.watchdog, daemon=True, name="ppro-watch").start()
-        for target in (self.watch_foreground, self.watch_config, self.heartbeat, self.connect_loop):
+        for target in (self.watch_foreground, self.watch_config, self.heartbeat, self.connect_loop,
+                       self.favorites_loop, self.update_loop):
             threading.Thread(target=target, daemon=True, name=target.__name__).start()
 
         port = int(self.store.get()["settings"].get("editor_port", 8790))
         server = make_server(self, port)
+        self.server = server
         url = f"http://127.0.0.1:{port}/"
         log(f"Editori i butonave: {url}")
         if open_browser:
             threading.Timer(1.0, lambda: webbrowser.open(url)).start()
+        if tray:
+            threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.5},
+                             daemon=True, name="http").start()
+            try:
+                self.tray = Tray(
+                    version=VERSION, editor_url=url, log_path=str(LOG_FILE),
+                    is_connected=lambda: self.link.connected, device=lambda: self.link.device or "",
+                    update_available=lambda: self.updater.status()["available"],
+                    on_update=self._tray_update, on_restart=lambda: self.restart_hook and self.restart_hook(),
+                    on_quit=self.shutdown)
+                self.tray.run()          # blocks until "Mbyll"
+            except Exception as e:      # pystray missing: keep running headless
+                log(f"Ikona pranë orës nuk u hap ({e}). Agjenti vazhdon pa të.")
+                self.stop.wait()
+            return
         try:
             server.serve_forever(poll_interval=0.5)
         except KeyboardInterrupt:
             pass
         finally:
-            self.stop.set()
+            self.shutdown(exit_process=False)
+
+    def _tray_update(self) -> None:
+        try:
+            msg = self.apply_update()
+        except Exception as e:  # noqa: BLE001
+            msg = f"Përditësimi dështoi: {e}"
+            log(msg)
+        if self.tray:
+            self.tray.notify(msg)
+
+    def shutdown(self, exit_process: bool = True) -> None:
+        self.stop.set()
+        try:
             self.engine.release_all()
             self.timer.save()
-            log("Agjenti u mbyll.")
+            self.usage.save()
+        except Exception:
+            pass
+        log("Agjenti u mbyll.")
+        if exit_process:
+            os._exit(0)
 
 
 # --------------------------------------------------------------------------- #
@@ -1417,6 +1762,22 @@ def make_server(agent: Agent, port: int) -> ThreadingHTTPServer:
                 self.send_header("Content-Length", str(len(data)))
                 self.end_headers()
                 self.wfile.write(data)
+            elif path == "/api/update":
+                self._json(200, agent.updater.status())
+            elif path == "/api/paths":
+                self._json(200, {"paths": agent.paths.view()})
+            elif path == "/api/brands":
+                self._json(200, {"brands": agent.brands.brands,
+                                 "logos_root": str(expand_logos_root(agent.store.get()["settings"]))})
+            elif path == "/api/brand_logos":
+                from urllib.parse import parse_qs, urlparse
+                bid = (parse_qs(urlparse(self.path).query).get("id") or [""])[0]
+                brand = next((b for b in agent.brands.brands if b["id"] == bid), None)
+                if not brand:
+                    self._json(404, {"error": "Brendi nuk u gjet"})
+                    return
+                folder = logos_dir(agent.store.get()["settings"], brand["name"])
+                self._json(200, {"folder": str(folder), "items": list_logos(folder)})
             elif path == "/api/apps":
                 self._json(200, {"ready": agent.apps.ready.is_set(),
                                  "scanned": [{k: a[k] for k in ("name", "path", "exe")} for a in agent.apps.apps],
@@ -1436,6 +1797,7 @@ def make_server(agent: Agent, port: int) -> ThreadingHTTPServer:
                     "audio_commands": AUDIO_COMMANDS,
                     "rendering": [e["name"] for e in agent.renders.values()],
                     "time_current": agent.timer.current,
+                    "ipad_expires": agent.ipad_expires,
                 })
             else:
                 self._json(404, {"error": "not found"})
@@ -1484,6 +1846,53 @@ def make_server(agent: Agent, port: int) -> ThreadingHTTPServer:
                 threading.Thread(target=send_document, args=(agent.link, tmp, name, True, log), daemon=True).start()
                 self._json(200, {"ok": True})
                 return
+            if path == "/api/brand_logo_upload":    # editor: drop a logo into a brand's folder
+                from urllib.parse import unquote
+                n = int(self.headers.get("Content-Length") or 0)
+                bid = unquote(self.headers.get("X-Brand") or "")
+                brand = next((b for b in agent.brands.brands if b["id"] == bid), None)
+                name = safe_name(Path(unquote(self.headers.get("X-Filename") or "logo.png")).name, "logo.png")
+                if not brand or n <= 0 or n > 500_000_000:
+                    self._json(400, {"error": "Brend ose skedar i pavlefshëm"})
+                    return
+                if Path(name).suffix.lower() not in LOGO_EXT:
+                    self._json(400, {"error": "Lloj skedari që nuk pranohet si logo"})
+                    return
+                folder = logos_dir(agent.store.get()["settings"], brand["name"])
+                dest = folder / name
+                i = 2
+                while dest.exists():
+                    dest = folder / f"{Path(name).stem} ({i}){Path(name).suffix}"
+                    i += 1
+                with open(dest, "wb") as fh:
+                    left = n
+                    while left > 0:
+                        chunk = self.rfile.read(min(left, 1 << 20))
+                        if not chunk:
+                            break
+                        fh.write(chunk)
+                        left -= len(chunk)
+                self._json(200, {"ok": True, "name": dest.name})
+                return
+            if path == "/api/paths_add":            # "Send to > Shto si rrugë" from Explorer
+                from urllib.parse import parse_qs
+                n = int(self.headers.get("Content-Length") or 0)
+                form = parse_qs(self.rfile.read(min(n, 100_000)).decode("utf-8", "replace"))
+                added = []
+                for p_ in form.get("path", []):
+                    p_ = p_.strip().strip('"')
+                    if os.path.isfile(p_):
+                        p_ = os.path.dirname(p_)
+                    if p_ and os.path.isdir(p_):
+                        it = agent.paths.add(p_)
+                        if it:
+                            added.append(it["name"])
+                agent.push_paths()
+                if added:
+                    agent.engine.toast("📁 U shtua te Rrugët: " + ", ".join(added))
+                    log("Rrugë e re: " + ", ".join(added))
+                self._json(200, {"ok": True, "added": added})
+                return
             if path == "/api/send_file":            # "Send to > USB Deck" from Explorer
                 from urllib.parse import parse_qs
                 n = int(self.headers.get("Content-Length") or 0)
@@ -1512,6 +1921,57 @@ def make_server(agent: Agent, port: int) -> ThreadingHTTPServer:
                     return
                 agent.push_config()
                 self._json(200, {"ok": True, "config": cfg, "pushed": agent.link.connected})
+            elif path == "/api/brands":
+                try:
+                    clean = agent.brands.save(body.get("brands"))
+                except (ValueError, TypeError) as e:
+                    self._json(400, {"error": str(e)})
+                    return
+                agent.link.send({"type": "brands", "brands": clean})
+                self._json(200, {"ok": True, "brands": clean, "pushed": agent.link.connected})
+            elif path == "/api/paths":
+                try:
+                    agent.paths.save(body.get("paths"))
+                except (ValueError, TypeError) as e:
+                    self._json(400, {"error": str(e)})
+                    return
+                agent.push_paths()
+                self._json(200, {"ok": True, "paths": agent.paths.view(), "pushed": agent.link.connected})
+            elif path == "/api/pick_folder":
+                try:
+                    picked = pathmod.pick_folder(str(body.get("initial") or ""))
+                except Exception as e:  # noqa: BLE001 - no tkinter etc.
+                    self._json(500, {"error": f"Dritarja e zgjedhjes nuk u hap: {e}"})
+                    return
+                self._json(200, {"path": picked.replace("/", "\\") if IS_WINDOWS else picked})
+            elif path == "/api/update_check":
+                st_ = agent.store.get()["settings"]
+                self._json(200, agent.updater.check(body.get("repo") or st_.get("update_repo", ""),
+                                                    body.get("branch") or st_.get("update_branch", "main"),
+                                                    body.get("token") or st_.get("update_token", "")))
+            elif path == "/api/update_apply":
+                try:
+                    msg = agent.apply_update()
+                    self._json(200, {"ok": True, "message": msg, "restarting": msg.startswith("U përditësua")})
+                except Exception as e:  # noqa: BLE001
+                    self._json(500, {"error": f"Përditësimi dështoi: {e}"})
+            elif path == "/api/restart":
+                self._json(200, {"ok": True})
+                if agent.restart_hook:
+                    threading.Timer(0.8, agent.restart_hook).start()
+            elif path == "/api/usage_reset":
+                agent.usage.reset(body.get("profile") or None)
+                agent.usage.save()
+                agent.push_config()
+                self._json(200, {"ok": True})
+            elif path == "/api/brand_open_logos":
+                brand = next((b for b in agent.brands.brands if b["id"] == body.get("id")), None)
+                if not brand:
+                    self._json(404, {"error": "Ruaj brendin njëherë, pastaj hap dosjen"})
+                    return
+                folder = logos_dir(agent.store.get()["settings"], brand["name"])
+                open_path(folder)
+                self._json(200, {"ok": True, "folder": str(folder)})
             elif path == "/api/ppro_install":
                 res = install_panel(HERE / "premiere-panel")
                 self._json(200 if res == "ok" else 500, {"ok": res == "ok", "message": res})
@@ -1536,26 +1996,88 @@ def make_server(agent: Agent, port: int) -> ThreadingHTTPServer:
             else:
                 self._json(404, {"error": "not found"})
 
-    try:
-        return ThreadingHTTPServer(("127.0.0.1", port), Handler)
-    except OSError:
-        raise SystemExit(f"Porta {port} eshte e zene. A eshte agjenti tashme i hapur?")
+    for attempt in range(20):   # after a restart the old process may still hold the port briefly
+        try:
+            return ThreadingHTTPServer(("127.0.0.1", port), Handler)
+        except OSError:
+            if attempt == 19:
+                break
+            time.sleep(0.5)
+    raise SystemExit(f"Porta {port} eshte e zene. A eshte agjenti tashme i hapur (shiko ikonën pranë orës)?")
 
 
 # --------------------------------------------------------------------------- #
 
+def expand_logos_root(settings: dict) -> Path:
+    return _fexpand(settings.get("logos_folder") or "%USERPROFILE%\\Documents\\USB Deck Logos")
+
+
+def _harden_console() -> None:
+    """Turn off QuickEdit (a click in the black window would freeze the agent)
+    and ignore Ctrl+C / Ctrl+Break so a stray shortcut can't kill it."""
+    if not IS_WINDOWS:
+        return
+    try:
+        import ctypes
+        k32 = ctypes.windll.kernel32
+        h = k32.GetStdHandle(-10)  # STD_INPUT_HANDLE
+        mode = ctypes.c_uint32()
+        if k32.GetConsoleMode(h, ctypes.byref(mode)):
+            # drop ENABLE_QUICK_EDIT_MODE (0x40), keep ENABLE_EXTENDED_FLAGS (0x80)
+            k32.SetConsoleMode(h, (mode.value & ~0x40) | 0x80)
+        k32.SetConsoleCtrlHandler(None, True)
+    except Exception:
+        pass
+
+
+def _setup_logging(to_file: bool) -> None:
+    """Without a console (pythonw / tray mode) everything goes to agent.log; crashes too."""
+    import faulthandler
+    if to_file or sys.stdout is None:
+        try:
+            if LOG_FILE.exists() and LOG_FILE.stat().st_size > 2_000_000:
+                os.replace(LOG_FILE, LOG_FILE.with_name("agent.log.1"))
+        except OSError:
+            pass
+        fh = open(LOG_FILE, "a", encoding="utf-8", buffering=1)
+        sys.stdout = sys.stderr = fh
+        faulthandler.enable(fh)
+    else:
+        faulthandler.enable()
+
+
+def _restart() -> None:
+    """Start a fresh copy of the agent (same arguments) and exit this one."""
+    args = [sys.executable, str(Path(__file__).resolve())] + sys.argv[1:]
+    if "--no-browser" not in args:
+        args.append("--no-browser")
+    log("Po rinis agjentin…")
+    flags = 0
+    if IS_WINDOWS:
+        flags = 0x00000008 | 0x00000200   # DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP
+        if not sys.executable.lower().endswith("pythonw.exe"):
+            flags = 0x00000010 | 0x00000200   # CREATE_NEW_CONSOLE: keep the black window visible
+    subprocess.Popen(args, cwd=str(HERE), creationflags=flags, close_fds=True)
+    os._exit(0)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="USB Deck - agjenti per Windows")
     ap.add_argument("--no-browser", action="store_true", help="mos hap editorin ne browser")
+    ap.add_argument("--tray", action="store_true", help="pa dritare: ikonë pranë orës, log te agent.log")
     ap.add_argument("--tcp", metavar="HOST:PORT", help="testim: lidhu me TCP direkt (p.sh. me iproxy)")
     args = ap.parse_args()
+    _setup_logging(args.tray)
+    _harden_console()
 
     tcp = None
     if args.tcp:
         host, _, port = args.tcp.rpartition(":")
         tcp = (host or "127.0.0.1", int(port))
 
-    Agent(tcp).run(open_browser=not args.no_browser)
+    agent = Agent(tcp)
+    agent.restart_hook = _restart
+    agent.run(open_browser=not args.no_browser, tray=args.tray)
 
 
 if __name__ == "__main__":

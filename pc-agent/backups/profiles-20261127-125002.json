@@ -1,0 +1,2870 @@
+{
+  "version": 1,
+  "settings": {
+    "grid": {
+      "rows": 4,
+      "cols": 5
+    },
+    "editor_port": 8790,
+    "after_effects_path": "",
+    "repeat_delay": 0.35,
+    "repeat_rate": 0.045,
+    "render_notify": true,
+    "render_sound": true,
+    "render_folders": [
+      "%USERPROFILE%\\Videos"
+    ],
+    "screenshot_folder": "%USERPROFILE%\\Pictures\\USB Deck Screenshots",
+    "transfer_folder": "%USERPROFILE%\\Desktop\\Nga iPad-i",
+    "timecode_start_hours": {
+      "adobe premiere pro.exe": 0,
+      "resolve.exe": 1,
+      "afterfx.exe": 0
+    },
+    "project_folders": [
+      "%USERPROFILE%\\Documents",
+      "%USERPROFILE%\\Desktop"
+    ],
+    "projects_root": "%USERPROFILE%\\Desktop\\Projekte",
+    "project_template": [
+      "01_Footage",
+      "02_Audio/Muzika",
+      "02_Audio/SFX",
+      "02_Audio/VO",
+      "03_Grafika",
+      "04_Projekti",
+      "05_Eksporte",
+      "06_Referenca"
+    ],
+    "project_template_files": [],
+    "backup_enabled": true,
+    "backup_folder": "%USERPROFILE%\\Documents\\USB Deck Backups",
+    "backup_keep": 30,
+    "backup_interval_minutes": 2,
+    "time_tracking": true,
+    "idle_minutes": 5,
+    "ppro_export_folder": "",
+    "logos_folder": "%USERPROFILE%\\Documents\\USB Deck Logos",
+    "scopes_fps": 10,
+    "ai_model": "gemma3:4b",
+    "beats_fps": 25,
+    "screen_fps": 20,
+    "screen_quality": 70,
+    "screen_max_width": 1600,
+    "screen_touch": true,
+    "screenshot_ask": true,
+    "launchers": [
+      {
+        "name": "Media sender",
+        "path": "\"C:\\Users\\elbunit.rexhepi\\Desktop\\wetransfer app\\New folder (36)\\MediaSender_v50_POLISH\\MediaSender_v50\\dist\\MediaSender.exe\"",
+        "exe": ""
+      },
+      {
+        "name": "Adobe Premiere Pro (Beta)",
+        "path": "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Adobe Premiere Pro (Beta).lnk",
+        "exe": "adobe premiere pro (beta).exe"
+      },
+      {
+        "name": "Adobe After Effects (Beta)",
+        "path": "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Adobe After Effects (Beta).lnk",
+        "exe": "afterfx (beta).exe"
+      },
+      {
+        "name": "Adobe Photoshop (Beta)",
+        "path": "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Adobe Photoshop (Beta).lnk",
+        "exe": "photoshop.exe"
+      },
+      {
+        "name": "Adobe Illustrator 2024",
+        "path": "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Adobe Illustrator 2024.lnk",
+        "exe": "illustrator.exe"
+      },
+      {
+        "name": "Adobe Lightroom",
+        "path": "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Adobe Lightroom.lnk",
+        "exe": "lightroom.exe"
+      },
+      {
+        "name": "Google Chrome",
+        "path": "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Google Chrome.lnk",
+        "exe": "chrome.exe"
+      },
+      {
+        "name": "Maxon Cinema 4D 2023",
+        "path": "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Maxon\\Maxon Cinema 4D\\Maxon Cinema 4D 2023.lnk",
+        "exe": "cinema 4d.exe"
+      }
+    ],
+    "scopes_region": [
+      1700,
+      217,
+      1173,
+      670
+    ]
+  },
+  "profiles": [
+    {
+      "id": "premiere",
+      "name": "Premiere Pro",
+      "color": "#5B5BD6",
+      "symbol": "film",
+      "apps": [
+        "adobe premiere pro.exe"
+      ],
+      "jog": {
+        "modes": [
+          {
+            "id": "frame",
+            "label": "Kuadër",
+            "keys": [
+              "left",
+              "right"
+            ]
+          },
+          {
+            "id": "edit",
+            "label": "Prerje",
+            "keys": [
+              "up",
+              "down"
+            ]
+          },
+          {
+            "id": "zoom",
+            "label": "Zoom",
+            "keys": [
+              "-",
+              "="
+            ]
+          },
+          {
+            "id": "nudge",
+            "label": "Shty klipin",
+            "keys": [
+              "alt+left",
+              "alt+right"
+            ]
+          }
+        ],
+        "transport": {
+          "reverse": "j",
+          "stop": "k",
+          "forward": "l"
+        }
+      },
+      "pages": [
+        {
+          "name": "Editim",
+          "buttons": [
+            {
+              "label": "Play / Stop",
+              "symbol": "playpause.fill",
+              "color": "#2F6FED",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "space"
+                }
+              ],
+              "id": "pr_play_stop"
+            },
+            {
+              "label": "Mbrapa (J)",
+              "symbol": "backward.fill",
+              "color": "#2F6FED",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "j"
+                }
+              ],
+              "id": "pr_mbrapa_j"
+            },
+            {
+              "label": "Stop (K)",
+              "symbol": "stop.fill",
+              "color": "#2F6FED",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "k"
+                }
+              ],
+              "id": "pr_stop_k"
+            },
+            {
+              "label": "Para (L)",
+              "symbol": "forward.fill",
+              "color": "#2F6FED",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "l"
+                }
+              ],
+              "id": "pr_para_l"
+            },
+            {
+              "label": "Kuadër ←",
+              "symbol": "backward.frame.fill",
+              "color": "#2F6FED",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "left"
+                }
+              ],
+              "id": "pr_kuad_r"
+            },
+            {
+              "label": "Kuadër →",
+              "symbol": "forward.frame.fill",
+              "color": "#2F6FED",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "right"
+                }
+              ],
+              "id": "pr_kuad_r_2"
+            },
+            {
+              "label": "Prerja para",
+              "symbol": "backward.end.fill",
+              "color": "#2F6FED",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "up"
+                }
+              ],
+              "id": "pr_prerja_para"
+            },
+            {
+              "label": "Prerja pas",
+              "symbol": "forward.end.fill",
+              "color": "#2F6FED",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "down"
+                }
+              ],
+              "id": "pr_prerja_pas"
+            },
+            {
+              "label": "Cut (Add Edit)",
+              "symbol": "scissors",
+              "color": "#D93F45",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+k"
+                }
+              ],
+              "id": "pr_cut_add_edit"
+            },
+            {
+              "label": "Cut të gjitha",
+              "symbol": "scissors.badge.ellipsis",
+              "color": "#D93F45",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+shift+k"
+                }
+              ],
+              "id": "pr_cut_t_gjitha"
+            },
+            {
+              "label": "Ripple Delete",
+              "symbol": "delete.left.fill",
+              "color": "#D93F45",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "shift+delete"
+                }
+              ],
+              "id": "pr_ripple_delete"
+            },
+            {
+              "label": "Ripple Trim ←",
+              "symbol": "arrow.left.to.line",
+              "color": "#D93F45",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "q"
+                }
+              ],
+              "id": "pr_ripple_trim"
+            },
+            {
+              "label": "Ripple Trim →",
+              "symbol": "arrow.right.to.line",
+              "color": "#D93F45",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "w"
+                }
+              ],
+              "id": "pr_ripple_trim_2"
+            },
+            {
+              "label": "Mark In",
+              "symbol": "i.square.fill",
+              "color": "#B7820A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "i"
+                }
+              ],
+              "id": "pr_mark_in"
+            },
+            {
+              "label": "Mark Out",
+              "symbol": "o.square.fill",
+              "color": "#B7820A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "o"
+                }
+              ],
+              "id": "pr_mark_out"
+            },
+            {
+              "label": "Marker",
+              "symbol": "bookmark.fill",
+              "color": "#B7820A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "m"
+                }
+              ],
+              "id": "pr_marker"
+            },
+            {
+              "label": "Undo",
+              "symbol": "arrow.uturn.backward",
+              "color": "#454B57",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "ctrl+z"
+                }
+              ],
+              "id": "pr_undo"
+            },
+            {
+              "label": "Redo",
+              "symbol": "arrow.uturn.forward",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+shift+z"
+                }
+              ],
+              "id": "pr_redo"
+            },
+            {
+              "label": "Ruaj",
+              "symbol": "square.and.arrow.down.fill",
+              "color": "#22945F",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+s"
+                }
+              ],
+              "id": "pr_ruaj"
+            },
+            {
+              "label": "Export",
+              "symbol": "square.and.arrow.up.fill",
+              "color": "#22945F",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+m"
+                }
+              ],
+              "id": "pr_export"
+            }
+          ]
+        },
+        {
+          "name": "Mjete",
+          "buttons": [
+            {
+              "label": "Selection (V)",
+              "symbol": "cursorarrow",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "v"
+                }
+              ],
+              "id": "pr_selection_v"
+            },
+            {
+              "label": "Razor (C)",
+              "symbol": "scissors",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "c"
+                }
+              ],
+              "id": "pr_razor_c"
+            },
+            {
+              "label": "Ripple Edit (B)",
+              "symbol": "arrow.left.and.right.square",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "b"
+                }
+              ],
+              "id": "pr_ripple_edit_b"
+            },
+            {
+              "label": "Rolling (N)",
+              "symbol": "arrow.left.arrow.right",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "n"
+                }
+              ],
+              "id": "pr_rolling_n"
+            },
+            {
+              "label": "Slip (Y)",
+              "symbol": "arrow.left.and.right",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "y"
+                }
+              ],
+              "id": "pr_slip_y"
+            },
+            {
+              "label": "Pen (P)",
+              "symbol": "pencil.tip",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "p"
+                }
+              ],
+              "id": "pr_pen_p"
+            },
+            {
+              "label": "Hand (H)",
+              "symbol": "hand.raised.fill",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "h"
+                }
+              ],
+              "id": "pr_hand_h"
+            },
+            {
+              "label": "Text (T)",
+              "symbol": "textformat",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "t"
+                }
+              ],
+              "id": "pr_text_t"
+            },
+            {
+              "label": "Zoom +",
+              "symbol": "plus.magnifyingglass",
+              "color": "#0E978A",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "="
+                }
+              ],
+              "id": "pr_zoom"
+            },
+            {
+              "label": "Zoom −",
+              "symbol": "minus.magnifyingglass",
+              "color": "#0E978A",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "-"
+                }
+              ],
+              "id": "pr_zoom_2"
+            },
+            {
+              "label": "Përshtat sekuencën",
+              "symbol": "arrow.up.left.and.arrow.down.right",
+              "color": "#0E978A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "\\"
+                }
+              ],
+              "id": "pr_p_rshtat_sekuenc_n"
+            },
+            {
+              "label": "Snap (S)",
+              "symbol": "link",
+              "color": "#0E978A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "s"
+                }
+              ],
+              "id": "pr_snap_s"
+            },
+            {
+              "label": "Match Frame",
+              "symbol": "rectangle.on.rectangle",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "f"
+                }
+              ],
+              "id": "pr_match_frame"
+            },
+            {
+              "label": "Speed / Duration",
+              "symbol": "speedometer",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+r"
+                }
+              ],
+              "id": "pr_speed_duration"
+            },
+            {
+              "label": "Render In-Out",
+              "symbol": "bolt.fill",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "enter"
+                }
+              ],
+              "id": "pr_render_in_out"
+            },
+            {
+              "label": "Shty ←",
+              "symbol": "chevron.left.2",
+              "color": "#8448C4",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "alt+left"
+                }
+              ],
+              "id": "pr_shty"
+            },
+            {
+              "label": "Shty →",
+              "symbol": "chevron.right.2",
+              "color": "#8448C4",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "alt+right"
+                }
+              ],
+              "id": "pr_shty_2"
+            },
+            {
+              "label": "Link / Unlink",
+              "symbol": "link.circle.fill",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+l"
+                }
+              ],
+              "id": "pr_link_unlink"
+            },
+            {
+              "label": "Enable / Disable",
+              "symbol": "eye.slash.fill",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "shift+e"
+                }
+              ],
+              "id": "pr_enable_disable"
+            },
+            {
+              "label": "Full Screen",
+              "symbol": "arrow.up.backward.and.arrow.down.forward",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+`"
+                }
+              ],
+              "id": "pr_full_screen"
+            }
+          ]
+        },
+        {
+          "name": "Audio & Efekte",
+          "buttons": [
+            {
+              "label": "Volum +1dB",
+              "symbol": "speaker.wave.3.fill",
+              "color": "#E8651A",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "]"
+                }
+              ],
+              "id": "pr_volum_1db"
+            },
+            {
+              "label": "Volum −1dB",
+              "symbol": "speaker.wave.1.fill",
+              "color": "#E8651A",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "["
+                }
+              ],
+              "id": "pr_volum_1db_2"
+            },
+            {
+              "label": "Audio Gain",
+              "symbol": "waveform",
+              "color": "#E8651A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "g"
+                }
+              ],
+              "id": "pr_audio_gain"
+            },
+            {
+              "label": "Tranzicion Video",
+              "symbol": "square.on.square",
+              "color": "#C93A8E",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+d"
+                }
+              ],
+              "id": "pr_tranzicion_video"
+            },
+            {
+              "label": "Tranzicion Audio",
+              "symbol": "waveform.path",
+              "color": "#C93A8E",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+shift+d"
+                }
+              ],
+              "id": "pr_tranzicion_audio"
+            },
+            {
+              "label": "Paste Attributes",
+              "symbol": "doc.on.clipboard.fill",
+              "color": "#C93A8E",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+alt+v"
+                }
+              ],
+              "id": "pr_paste_attributes"
+            },
+            {
+              "label": "Lift (;)",
+              "symbol": "arrow.up.square",
+              "color": "#D93F45",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": ";"
+                }
+              ],
+              "id": "pr_lift"
+            },
+            {
+              "label": "Extract (')",
+              "symbol": "arrow.up.and.down.square",
+              "color": "#D93F45",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "'"
+                }
+              ],
+              "id": "pr_extract"
+            },
+            {
+              "label": "Insert (,)",
+              "symbol": "arrow.down.to.line",
+              "color": "#2F6FED",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": ","
+                }
+              ],
+              "id": "pr_insert"
+            },
+            {
+              "label": "Overwrite (.)",
+              "symbol": "arrow.down.square.fill",
+              "color": "#2F6FED",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "."
+                }
+              ],
+              "id": "pr_overwrite"
+            },
+            {
+              "label": "Pastro In/Out",
+              "symbol": "xmark.square",
+              "color": "#B7820A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+shift+x"
+                }
+              ],
+              "id": "pr_pastro_in_out"
+            },
+            {
+              "label": "Shko te In",
+              "symbol": "arrow.backward.to.line",
+              "color": "#B7820A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "shift+i"
+                }
+              ],
+              "id": "pr_shko_te_in"
+            },
+            {
+              "label": "Shko te Out",
+              "symbol": "arrow.forward.to.line",
+              "color": "#B7820A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "shift+o"
+                }
+              ],
+              "id": "pr_shko_te_out"
+            },
+            {
+              "label": "Import",
+              "symbol": "square.and.arrow.down.on.square",
+              "color": "#22945F",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+i"
+                }
+              ],
+              "id": "pr_import"
+            },
+            {
+              "label": "Maksimizo panelin",
+              "symbol": "rectangle.expand.vertical",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "`"
+                }
+              ],
+              "id": "pr_maksimizo_panelin"
+            },
+            {
+              "label": "Ruaj + Export",
+              "symbol": "paperplane.fill",
+              "color": "#22945F",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+s"
+                },
+                {
+                  "wait": 0.4
+                },
+                {
+                  "keys": "ctrl+m"
+                }
+              ],
+              "id": "pr_ruaj_export"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aftereffects",
+      "name": "After Effects",
+      "color": "#7B4FD6",
+      "symbol": "sparkles",
+      "apps": [
+        "afterfx.exe"
+      ],
+      "ease": true,
+      "jog": {
+        "modes": [
+          {
+            "id": "frame",
+            "label": "Kuadër",
+            "keys": [
+              "page up",
+              "page down"
+            ]
+          },
+          {
+            "id": "key",
+            "label": "Keyframe",
+            "keys": [
+              "j",
+              "k"
+            ]
+          },
+          {
+            "id": "zoom",
+            "label": "Zoom",
+            "keys": [
+              "-",
+              "="
+            ]
+          },
+          {
+            "id": "layer",
+            "label": "Layer",
+            "keys": [
+              "ctrl+up",
+              "ctrl+down"
+            ]
+          }
+        ],
+        "transport": {
+          "stop": "space"
+        }
+      },
+      "pages": [
+        {
+          "name": "Animim",
+          "buttons": [
+            {
+              "label": "Preview",
+              "symbol": "playpause.fill",
+              "color": "#2F6FED",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "space"
+                }
+              ],
+              "id": "ae_preview"
+            },
+            {
+              "label": "Easy Ease",
+              "symbol": "wand.and.stars",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "f9"
+                }
+              ],
+              "id": "ae_easy_ease"
+            },
+            {
+              "label": "Ease In",
+              "symbol": "arrow.down.right",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "shift+f9"
+                }
+              ],
+              "id": "ae_ease_in"
+            },
+            {
+              "label": "Ease Out",
+              "symbol": "arrow.up.right",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+shift+f9"
+                }
+              ],
+              "id": "ae_ease_out"
+            },
+            {
+              "label": "Hold Key",
+              "symbol": "pause.rectangle.fill",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+alt+h"
+                }
+              ],
+              "id": "ae_hold_key"
+            },
+            {
+              "label": "Graph Editor",
+              "symbol": "chart.xyaxis.line",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "shift+f3"
+                }
+              ],
+              "id": "ae_graph_editor"
+            },
+            {
+              "label": "Keyframe ←",
+              "symbol": "chevron.left.circle.fill",
+              "color": "#2F6FED",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "j"
+                }
+              ],
+              "id": "ae_keyframe"
+            },
+            {
+              "label": "Keyframe →",
+              "symbol": "chevron.right.circle.fill",
+              "color": "#2F6FED",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "k"
+                }
+              ],
+              "id": "ae_keyframe_2"
+            },
+            {
+              "label": "Kuadër ←",
+              "symbol": "backward.frame.fill",
+              "color": "#2F6FED",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "page up"
+                }
+              ],
+              "id": "ae_kuad_r"
+            },
+            {
+              "label": "Kuadër →",
+              "symbol": "forward.frame.fill",
+              "color": "#2F6FED",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "page down"
+                }
+              ],
+              "id": "ae_kuad_r_2"
+            },
+            {
+              "label": "Position (P)",
+              "symbol": "arrow.up.and.down.and.arrow.left.and.right",
+              "color": "#0E978A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "p"
+                }
+              ],
+              "id": "ae_position_p"
+            },
+            {
+              "label": "Scale (S)",
+              "symbol": "arrow.up.left.and.down.right.and.arrow.up.right.and.down.left",
+              "color": "#0E978A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "s"
+                }
+              ],
+              "id": "ae_scale_s"
+            },
+            {
+              "label": "Rotation (R)",
+              "symbol": "rotate.right",
+              "color": "#0E978A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "r"
+                }
+              ],
+              "id": "ae_rotation_r"
+            },
+            {
+              "label": "Opacity (T)",
+              "symbol": "circle.lefthalf.filled",
+              "color": "#0E978A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "t"
+                }
+              ],
+              "id": "ae_opacity_t"
+            },
+            {
+              "label": "Anchor (A)",
+              "symbol": "scope",
+              "color": "#0E978A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "a"
+                }
+              ],
+              "id": "ae_anchor_a"
+            },
+            {
+              "label": "Keyframes (U)",
+              "symbol": "diamond.fill",
+              "color": "#B7820A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "u"
+                }
+              ],
+              "id": "ae_keyframes_u"
+            },
+            {
+              "label": "Të ndryshuarat (UU)",
+              "symbol": "diamond.circle.fill",
+              "color": "#B7820A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "u"
+                },
+                {
+                  "wait": 0.06
+                },
+                {
+                  "keys": "u"
+                }
+              ],
+              "id": "ae_t_ndryshuarat_uu"
+            },
+            {
+              "label": "Work Area Start",
+              "symbol": "arrow.right.to.line",
+              "color": "#B7820A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "b"
+                }
+              ],
+              "id": "ae_work_area_start"
+            },
+            {
+              "label": "Work Area End",
+              "symbol": "arrow.left.to.line",
+              "color": "#B7820A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "n"
+                }
+              ],
+              "id": "ae_work_area_end"
+            },
+            {
+              "label": "Undo",
+              "symbol": "arrow.uturn.backward",
+              "color": "#454B57",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "ctrl+z"
+                }
+              ],
+              "id": "ae_undo"
+            }
+          ]
+        },
+        {
+          "name": "Layer & Comp",
+          "buttons": [
+            {
+              "label": "Split Layer",
+              "symbol": "scissors",
+              "color": "#D93F45",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+shift+d"
+                }
+              ],
+              "id": "ae_split_layer"
+            },
+            {
+              "label": "Trim In ([)",
+              "symbol": "arrow.right.to.line",
+              "color": "#D93F45",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "alt+["
+                }
+              ],
+              "id": "ae_trim_in"
+            },
+            {
+              "label": "Trim Out (])",
+              "symbol": "arrow.left.to.line",
+              "color": "#D93F45",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "alt+]"
+                }
+              ],
+              "id": "ae_trim_out"
+            },
+            {
+              "label": "Precompose",
+              "symbol": "square.stack.3d.up.fill",
+              "color": "#D93F45",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+shift+c"
+                }
+              ],
+              "id": "ae_precompose"
+            },
+            {
+              "label": "Duplicate",
+              "symbol": "plus.square.on.square",
+              "color": "#D93F45",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+d"
+                }
+              ],
+              "id": "ae_duplicate"
+            },
+            {
+              "label": "Solid i ri",
+              "symbol": "square.fill",
+              "color": "#4F46C8",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+y"
+                }
+              ],
+              "id": "ae_solid_i_ri"
+            },
+            {
+              "label": "Null i ri",
+              "symbol": "circle.dashed",
+              "color": "#4F46C8",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+alt+shift+y"
+                }
+              ],
+              "id": "ae_null_i_ri"
+            },
+            {
+              "label": "Adjustment",
+              "symbol": "slider.horizontal.3",
+              "color": "#4F46C8",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+alt+y"
+                }
+              ],
+              "id": "ae_adjustment"
+            },
+            {
+              "label": "Text Layer",
+              "symbol": "textformat",
+              "color": "#4F46C8",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+alt+shift+t"
+                }
+              ],
+              "id": "ae_text_layer"
+            },
+            {
+              "label": "Kamera",
+              "symbol": "camera.fill",
+              "color": "#4F46C8",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+alt+shift+c"
+                }
+              ],
+              "id": "ae_kamera"
+            },
+            {
+              "label": "Center Anchor",
+              "symbol": "plus.viewfinder",
+              "color": "#0E978A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+alt+home"
+                }
+              ],
+              "id": "ae_center_anchor"
+            },
+            {
+              "label": "Fit to Comp",
+              "symbol": "arrow.up.left.and.arrow.down.right",
+              "color": "#0E978A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+alt+f"
+                }
+              ],
+              "id": "ae_fit_to_comp"
+            },
+            {
+              "label": "Time Remap",
+              "symbol": "timer",
+              "color": "#0E978A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+alt+t"
+                }
+              ],
+              "id": "ae_time_remap"
+            },
+            {
+              "label": "Reverse Time",
+              "symbol": "arrow.uturn.left.circle",
+              "color": "#0E978A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+alt+r"
+                }
+              ],
+              "id": "ae_reverse_time"
+            },
+            {
+              "label": "Trim Comp → Work Area",
+              "symbol": "crop",
+              "color": "#0E978A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+shift+x"
+                }
+              ],
+              "id": "ae_trim_comp_work_area"
+            },
+            {
+              "label": "Comp i ri",
+              "symbol": "rectangle.badge.plus",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+n"
+                }
+              ],
+              "id": "ae_comp_i_ri"
+            },
+            {
+              "label": "Comp Settings",
+              "symbol": "gearshape.fill",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+k"
+                }
+              ],
+              "id": "ae_comp_settings"
+            },
+            {
+              "label": "Fillim (Home)",
+              "symbol": "backward.end.alt.fill",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "home"
+                }
+              ],
+              "id": "ae_fillim_home"
+            },
+            {
+              "label": "Fund (End)",
+              "symbol": "forward.end.alt.fill",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "end"
+                }
+              ],
+              "id": "ae_fund_end"
+            },
+            {
+              "label": "Redo",
+              "symbol": "arrow.uturn.forward",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+shift+z"
+                }
+              ],
+              "id": "ae_redo"
+            }
+          ]
+        },
+        {
+          "name": "Skripte & Render",
+          "buttons": [
+            {
+              "label": "Loop Cycle",
+              "symbol": "repeat",
+              "color": "#C93A8E",
+              "mode": "tap",
+              "actions": [
+                {
+                  "ae": "loop_cycle"
+                }
+              ],
+              "id": "ae_loop_cycle"
+            },
+            {
+              "label": "Loop Ping-Pong",
+              "symbol": "arrow.left.arrow.right",
+              "color": "#C93A8E",
+              "mode": "tap",
+              "actions": [
+                {
+                  "ae": "loop_pingpong"
+                }
+              ],
+              "id": "ae_loop_ping_pong"
+            },
+            {
+              "label": "Loop Offset",
+              "symbol": "arrow.forward.circle",
+              "color": "#C93A8E",
+              "mode": "tap",
+              "actions": [
+                {
+                  "ae": "loop_offset"
+                }
+              ],
+              "id": "ae_loop_offset"
+            },
+            {
+              "label": "Wiggle",
+              "symbol": "waveform.path",
+              "color": "#C93A8E",
+              "mode": "tap",
+              "actions": [
+                {
+                  "ae": "wiggle"
+                }
+              ],
+              "id": "ae_wiggle"
+            },
+            {
+              "label": "Inertial Bounce",
+              "symbol": "waveform.path.ecg",
+              "color": "#C93A8E",
+              "mode": "tap",
+              "actions": [
+                {
+                  "ae": "inertial_bounce"
+                }
+              ],
+              "id": "ae_inertial_bounce"
+            },
+            {
+              "label": "Null Controller",
+              "symbol": "circle.grid.cross",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "ae": "null_controller"
+                }
+              ],
+              "id": "ae_null_controller"
+            },
+            {
+              "label": "Sequence Layers",
+              "symbol": "square.stack",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "ae": "sequence_layers"
+                }
+              ],
+              "id": "ae_sequence_layers"
+            },
+            {
+              "label": "Hiq Expressions",
+              "symbol": "xmark.circle.fill",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "ae": "remove_expressions"
+                }
+              ],
+              "id": "ae_hiq_expressions"
+            },
+            null,
+            null,
+            {
+              "label": "Rezolucion Full",
+              "symbol": "circle.fill",
+              "color": "#0E978A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+j"
+                }
+              ],
+              "id": "ae_rezolucion_full"
+            },
+            {
+              "label": "Rezolucion Half",
+              "symbol": "circle.lefthalf.filled",
+              "color": "#0E978A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+shift+j"
+                }
+              ],
+              "id": "ae_rezolucion_half"
+            },
+            {
+              "label": "Rezolucion Quarter",
+              "symbol": "circle.bottomhalf.filled",
+              "color": "#0E978A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+alt+shift+j"
+                }
+              ],
+              "id": "ae_rezolucion_quarter"
+            },
+            {
+              "label": "Snapshot",
+              "symbol": "camera.shutter.button",
+              "color": "#0E978A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "shift+f5"
+                }
+              ],
+              "id": "ae_snapshot"
+            },
+            null,
+            {
+              "label": "Render Queue",
+              "symbol": "film.stack",
+              "color": "#22945F",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+m"
+                }
+              ],
+              "id": "ae_render_queue"
+            },
+            {
+              "label": "Media Encoder",
+              "symbol": "paperplane.fill",
+              "color": "#22945F",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+alt+m"
+                }
+              ],
+              "id": "ae_media_encoder"
+            },
+            {
+              "label": "Ruaj",
+              "symbol": "square.and.arrow.down.fill",
+              "color": "#22945F",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+s"
+                }
+              ],
+              "id": "ae_ruaj"
+            },
+            {
+              "label": "Increment & Save",
+              "symbol": "plus.square.fill.on.square.fill",
+              "color": "#22945F",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+alt+shift+s"
+                }
+              ],
+              "id": "ae_increment_save"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "resolve",
+      "name": "DaVinci Resolve",
+      "color": "#D2433A",
+      "symbol": "paintpalette.fill",
+      "apps": [
+        "resolve.exe"
+      ],
+      "jog": {
+        "modes": [
+          {
+            "id": "frame",
+            "label": "Kuadër",
+            "keys": [
+              "left",
+              "right"
+            ]
+          },
+          {
+            "id": "edit",
+            "label": "Prerje",
+            "keys": [
+              "up",
+              "down"
+            ]
+          },
+          {
+            "id": "zoom",
+            "label": "Zoom",
+            "keys": [
+              "ctrl+-",
+              "ctrl+="
+            ]
+          },
+          {
+            "id": "nudge",
+            "label": "Shty",
+            "keys": [
+              ",",
+              "."
+            ]
+          }
+        ],
+        "transport": {
+          "reverse": "j",
+          "stop": "k",
+          "forward": "l"
+        }
+      },
+      "pages": [
+        {
+          "name": "Edit",
+          "buttons": [
+            {
+              "label": "Play / Stop",
+              "symbol": "playpause.fill",
+              "color": "#2F6FED",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "space"
+                }
+              ],
+              "id": "dr_play_stop"
+            },
+            {
+              "label": "Mbrapa (J)",
+              "symbol": "backward.fill",
+              "color": "#2F6FED",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "j"
+                }
+              ],
+              "id": "dr_mbrapa_j"
+            },
+            {
+              "label": "Stop (K)",
+              "symbol": "stop.fill",
+              "color": "#2F6FED",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "k"
+                }
+              ],
+              "id": "dr_stop_k"
+            },
+            {
+              "label": "Para (L)",
+              "symbol": "forward.fill",
+              "color": "#2F6FED",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "l"
+                }
+              ],
+              "id": "dr_para_l"
+            },
+            {
+              "label": "Kuadër ←",
+              "symbol": "backward.frame.fill",
+              "color": "#2F6FED",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "left"
+                }
+              ],
+              "id": "dr_kuad_r"
+            },
+            {
+              "label": "Kuadër →",
+              "symbol": "forward.frame.fill",
+              "color": "#2F6FED",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "right"
+                }
+              ],
+              "id": "dr_kuad_r_2"
+            },
+            {
+              "label": "Prerja para",
+              "symbol": "backward.end.fill",
+              "color": "#2F6FED",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "up"
+                }
+              ],
+              "id": "dr_prerja_para"
+            },
+            {
+              "label": "Prerja pas",
+              "symbol": "forward.end.fill",
+              "color": "#2F6FED",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "down"
+                }
+              ],
+              "id": "dr_prerja_pas"
+            },
+            {
+              "label": "Split Clip",
+              "symbol": "scissors",
+              "color": "#D93F45",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+b"
+                }
+              ],
+              "id": "dr_split_clip"
+            },
+            {
+              "label": "Ripple Delete",
+              "symbol": "delete.left.fill",
+              "color": "#D93F45",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "shift+backspace"
+                }
+              ],
+              "id": "dr_ripple_delete"
+            },
+            {
+              "label": "Blade (B)",
+              "symbol": "scissors.circle.fill",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "b"
+                }
+              ],
+              "id": "dr_blade_b"
+            },
+            {
+              "label": "Selection (A)",
+              "symbol": "cursorarrow",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "a"
+                }
+              ],
+              "id": "dr_selection_a"
+            },
+            {
+              "label": "Trim (T)",
+              "symbol": "arrow.left.and.right.square",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "t"
+                }
+              ],
+              "id": "dr_trim_t"
+            },
+            {
+              "label": "Mark In",
+              "symbol": "i.square.fill",
+              "color": "#B7820A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "i"
+                }
+              ],
+              "id": "dr_mark_in"
+            },
+            {
+              "label": "Mark Out",
+              "symbol": "o.square.fill",
+              "color": "#B7820A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "o"
+                }
+              ],
+              "id": "dr_mark_out"
+            },
+            {
+              "label": "Marker",
+              "symbol": "bookmark.fill",
+              "color": "#B7820A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "m"
+                }
+              ],
+              "id": "dr_marker"
+            },
+            {
+              "label": "Zoom to Fit",
+              "symbol": "arrow.up.left.and.arrow.down.right",
+              "color": "#0E978A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "shift+z"
+                }
+              ],
+              "id": "dr_zoom_to_fit"
+            },
+            {
+              "label": "Undo",
+              "symbol": "arrow.uturn.backward",
+              "color": "#454B57",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "ctrl+z"
+                }
+              ],
+              "id": "dr_undo"
+            },
+            {
+              "label": "Redo",
+              "symbol": "arrow.uturn.forward",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+shift+z"
+                }
+              ],
+              "id": "dr_redo"
+            },
+            {
+              "label": "Ruaj",
+              "symbol": "square.and.arrow.down.fill",
+              "color": "#22945F",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+s"
+                }
+              ],
+              "id": "dr_ruaj"
+            }
+          ]
+        },
+        {
+          "name": "Faqe & Color",
+          "buttons": [
+            {
+              "label": "Media",
+              "symbol": "photo.on.rectangle",
+              "color": "#4F46C8",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "shift+2"
+                }
+              ],
+              "id": "dr_media"
+            },
+            {
+              "label": "Cut",
+              "symbol": "scissors",
+              "color": "#4F46C8",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "shift+3"
+                }
+              ],
+              "id": "dr_cut"
+            },
+            {
+              "label": "Edit",
+              "symbol": "film",
+              "color": "#4F46C8",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "shift+4"
+                }
+              ],
+              "id": "dr_edit"
+            },
+            {
+              "label": "Fusion",
+              "symbol": "sparkles",
+              "color": "#4F46C8",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "shift+5"
+                }
+              ],
+              "id": "dr_fusion"
+            },
+            {
+              "label": "Color",
+              "symbol": "paintpalette.fill",
+              "color": "#4F46C8",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "shift+6"
+                }
+              ],
+              "id": "dr_color"
+            },
+            {
+              "label": "Fairlight",
+              "symbol": "waveform",
+              "color": "#4F46C8",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "shift+7"
+                }
+              ],
+              "id": "dr_fairlight"
+            },
+            {
+              "label": "Deliver",
+              "symbol": "paperplane.fill",
+              "color": "#4F46C8",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "shift+8"
+                }
+              ],
+              "id": "dr_deliver"
+            },
+            {
+              "label": "Serial Node",
+              "symbol": "circle.grid.2x1.fill",
+              "color": "#E8651A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "alt+s"
+                }
+              ],
+              "id": "dr_serial_node"
+            },
+            {
+              "label": "Parallel Node",
+              "symbol": "circle.grid.2x2.fill",
+              "color": "#E8651A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "alt+p"
+                }
+              ],
+              "id": "dr_parallel_node"
+            },
+            {
+              "label": "Layer Node",
+              "symbol": "square.3.layers.3d",
+              "color": "#E8651A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "alt+l"
+                }
+              ],
+              "id": "dr_layer_node"
+            },
+            {
+              "label": "Grab Still",
+              "symbol": "camera.fill",
+              "color": "#E8651A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+alt+g"
+                }
+              ],
+              "id": "dr_grab_still"
+            },
+            {
+              "label": "Bypass Grades",
+              "symbol": "eye.slash.fill",
+              "color": "#E8651A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "shift+d"
+                }
+              ],
+              "id": "dr_bypass_grades"
+            },
+            {
+              "label": "Node On/Off",
+              "symbol": "power",
+              "color": "#E8651A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+d"
+                }
+              ],
+              "id": "dr_node_on_off"
+            },
+            {
+              "label": "Snapping (N)",
+              "symbol": "link",
+              "color": "#0E978A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "n"
+                }
+              ],
+              "id": "dr_snapping_n"
+            },
+            {
+              "label": "Linked Selection",
+              "symbol": "link.circle.fill",
+              "color": "#0E978A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+shift+l"
+                }
+              ],
+              "id": "dr_linked_selection"
+            },
+            {
+              "label": "Retime",
+              "symbol": "speedometer",
+              "color": "#0E978A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+r"
+                }
+              ],
+              "id": "dr_retime"
+            },
+            {
+              "label": "Tranzicion",
+              "symbol": "square.on.square",
+              "color": "#C93A8E",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+t"
+                }
+              ],
+              "id": "dr_tranzicion"
+            },
+            {
+              "label": "Match Frame",
+              "symbol": "rectangle.on.rectangle",
+              "color": "#C93A8E",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "f"
+                }
+              ],
+              "id": "dr_match_frame"
+            },
+            {
+              "label": "Zoom +",
+              "symbol": "plus.magnifyingglass",
+              "color": "#0E978A",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "ctrl+="
+                }
+              ],
+              "id": "dr_zoom"
+            },
+            {
+              "label": "Zoom −",
+              "symbol": "minus.magnifyingglass",
+              "color": "#0E978A",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "ctrl+-"
+                }
+              ],
+              "id": "dr_zoom_2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "photoshop",
+      "name": "Photoshop",
+      "color": "#1F7FD6",
+      "symbol": "paintbrush.fill",
+      "apps": [
+        "photoshop.exe"
+      ],
+      "jog": {
+        "modes": [
+          {
+            "id": "brush",
+            "label": "Brush",
+            "keys": [
+              "[",
+              "]"
+            ]
+          },
+          {
+            "id": "zoom",
+            "label": "Zoom",
+            "keys": [
+              "ctrl+-",
+              "ctrl+="
+            ]
+          },
+          {
+            "id": "history",
+            "label": "Histori",
+            "keys": [
+              "ctrl+z",
+              "ctrl+shift+z"
+            ]
+          }
+        ],
+        "transport": {}
+      },
+      "pages": [
+        {
+          "name": "Mjete",
+          "buttons": [
+            {
+              "label": "Move (V)",
+              "symbol": "arrow.up.and.down.and.arrow.left.and.right",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "v"
+                }
+              ],
+              "id": "ps_move_v"
+            },
+            {
+              "label": "Marquee (M)",
+              "symbol": "rectangle.dashed",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "m"
+                }
+              ],
+              "id": "ps_marquee_m"
+            },
+            {
+              "label": "Lasso (L)",
+              "symbol": "lasso",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "l"
+                }
+              ],
+              "id": "ps_lasso_l"
+            },
+            {
+              "label": "Brush (B)",
+              "symbol": "paintbrush.pointed.fill",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "b"
+                }
+              ],
+              "id": "ps_brush_b"
+            },
+            {
+              "label": "Eraser (E)",
+              "symbol": "eraser.fill",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "e"
+                }
+              ],
+              "id": "ps_eraser_e"
+            },
+            {
+              "label": "Crop (C)",
+              "symbol": "crop",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "c"
+                }
+              ],
+              "id": "ps_crop_c"
+            },
+            {
+              "label": "Hand (mbaj)",
+              "symbol": "hand.raised.fill",
+              "color": "#2F6FED",
+              "mode": "hold",
+              "actions": [
+                {
+                  "keys": "space"
+                }
+              ],
+              "id": "ps_hand_mbaj"
+            },
+            {
+              "label": "Zoom (Z)",
+              "symbol": "magnifyingglass",
+              "color": "#2F6FED",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "z"
+                }
+              ],
+              "id": "ps_zoom_z"
+            },
+            {
+              "label": "Free Transform",
+              "symbol": "skew",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+t"
+                }
+              ],
+              "id": "ps_free_transform"
+            },
+            {
+              "label": "Layer i ri",
+              "symbol": "plus.square.fill",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+shift+n"
+                }
+              ],
+              "id": "ps_layer_i_ri"
+            },
+            {
+              "label": "Duplikat layer",
+              "symbol": "plus.square.on.square",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+j"
+                }
+              ],
+              "id": "ps_duplikat_layer"
+            },
+            {
+              "label": "Merge Down",
+              "symbol": "arrow.down.square.fill",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+e"
+                }
+              ],
+              "id": "ps_merge_down"
+            },
+            {
+              "label": "Stamp Visible",
+              "symbol": "square.stack.3d.down.right.fill",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+alt+shift+e"
+                }
+              ],
+              "id": "ps_stamp_visible"
+            },
+            {
+              "label": "Deselect",
+              "symbol": "xmark.square",
+              "color": "#B7820A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+d"
+                }
+              ],
+              "id": "ps_deselect"
+            },
+            {
+              "label": "Invert Selection",
+              "symbol": "arrow.triangle.swap",
+              "color": "#B7820A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+shift+i"
+                }
+              ],
+              "id": "ps_invert_selection"
+            },
+            {
+              "label": "Brush −",
+              "symbol": "minus.circle.fill",
+              "color": "#0E978A",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "["
+                }
+              ],
+              "id": "ps_brush"
+            },
+            {
+              "label": "Brush +",
+              "symbol": "plus.circle.fill",
+              "color": "#0E978A",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "]"
+                }
+              ],
+              "id": "ps_brush_2"
+            },
+            {
+              "label": "Undo",
+              "symbol": "arrow.uturn.backward",
+              "color": "#454B57",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "ctrl+z"
+                }
+              ],
+              "id": "ps_undo"
+            },
+            {
+              "label": "Fit Screen",
+              "symbol": "arrow.up.left.and.arrow.down.right",
+              "color": "#2F6FED",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+0"
+                }
+              ],
+              "id": "ps_fit_screen"
+            },
+            {
+              "label": "Export As",
+              "symbol": "square.and.arrow.up.fill",
+              "color": "#22945F",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+alt+shift+w"
+                }
+              ],
+              "id": "ps_export_as"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "windows",
+      "name": "Windows",
+      "color": "#3A4A63",
+      "symbol": "desktopcomputer",
+      "apps": [
+        "explorer.exe"
+      ],
+      "jog": {
+        "modes": [
+          {
+            "id": "volume",
+            "label": "Volum",
+            "keys": [
+              "volume down",
+              "volume up"
+            ]
+          },
+          {
+            "id": "scroll",
+            "label": "Shigjeta",
+            "keys": [
+              "up",
+              "down"
+            ]
+          },
+          {
+            "id": "tabs",
+            "label": "Tab",
+            "keys": [
+              "ctrl+shift+tab",
+              "ctrl+tab"
+            ]
+          }
+        ],
+        "transport": {
+          "reverse": "previous track",
+          "stop": "play/pause media",
+          "forward": "next track"
+        }
+      },
+      "pages": [
+        {
+          "name": "Sistem",
+          "buttons": [
+            {
+              "label": "Kopjo",
+              "symbol": "doc.on.doc.fill",
+              "color": "#2F6FED",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+c"
+                }
+              ],
+              "id": "win_kopjo"
+            },
+            {
+              "label": "Ngjit",
+              "symbol": "doc.on.clipboard.fill",
+              "color": "#2F6FED",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+v"
+                }
+              ],
+              "id": "win_ngjit"
+            },
+            {
+              "label": "Pre",
+              "symbol": "scissors",
+              "color": "#2F6FED",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+x"
+                }
+              ],
+              "id": "win_pre"
+            },
+            {
+              "label": "Undo",
+              "symbol": "arrow.uturn.backward",
+              "color": "#454B57",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "ctrl+z"
+                }
+              ],
+              "id": "win_undo"
+            },
+            {
+              "label": "Redo",
+              "symbol": "arrow.uturn.forward",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+y"
+                }
+              ],
+              "id": "win_redo"
+            },
+            {
+              "label": "Screenshot (zona)",
+              "symbol": "camera.viewfinder",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "windows+shift+s"
+                }
+              ],
+              "id": "win_screenshot_zona"
+            },
+            {
+              "label": "Clipboard History",
+              "symbol": "list.clipboard.fill",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "windows+v"
+                }
+              ],
+              "id": "win_clipboard_history"
+            },
+            {
+              "label": "Desktop",
+              "symbol": "menubar.dock.rectangle",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "windows+d"
+                }
+              ],
+              "id": "win_desktop"
+            },
+            {
+              "label": "Task View",
+              "symbol": "rectangle.3.group.fill",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "windows+tab"
+                }
+              ],
+              "id": "win_task_view"
+            },
+            {
+              "label": "File Explorer",
+              "symbol": "folder.fill",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "windows+e"
+                }
+              ],
+              "id": "win_file_explorer"
+            },
+            {
+              "label": "Volum +",
+              "symbol": "speaker.wave.3.fill",
+              "color": "#E8651A",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "volume up"
+                }
+              ],
+              "id": "win_volum"
+            },
+            {
+              "label": "Volum −",
+              "symbol": "speaker.wave.1.fill",
+              "color": "#E8651A",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "volume down"
+                }
+              ],
+              "id": "win_volum_2"
+            },
+            {
+              "label": "Mute",
+              "symbol": "speaker.slash.fill",
+              "color": "#E8651A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "volume mute"
+                }
+              ],
+              "id": "win_mute"
+            },
+            {
+              "label": "Play / Pause",
+              "symbol": "playpause.fill",
+              "color": "#E8651A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "play/pause media"
+                }
+              ],
+              "id": "win_play_pause"
+            },
+            {
+              "label": "Kënga tjetër",
+              "symbol": "forward.end.fill",
+              "color": "#E8651A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "next track"
+                }
+              ],
+              "id": "win_k_nga_tjet_r"
+            },
+            {
+              "label": "Downloads",
+              "symbol": "arrow.down.circle.fill",
+              "color": "#22945F",
+              "mode": "tap",
+              "actions": [
+                {
+                  "open": "%USERPROFILE%\\Downloads"
+                }
+              ],
+              "id": "win_downloads"
+            },
+            {
+              "label": "Desktop folder",
+              "symbol": "menubar.rectangle",
+              "color": "#22945F",
+              "mode": "tap",
+              "actions": [
+                {
+                  "open": "%USERPROFILE%\\Desktop"
+                }
+              ],
+              "id": "win_desktop_folder"
+            },
+            {
+              "label": "Task Manager",
+              "symbol": "cpu",
+              "color": "#22945F",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+shift+esc"
+                }
+              ],
+              "id": "win_task_manager"
+            },
+            {
+              "label": "Emoji",
+              "symbol": "face.smiling",
+              "color": "#C93A8E",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "windows+."
+                }
+              ],
+              "id": "win_emoji"
+            },
+            {
+              "label": "Ruaj",
+              "symbol": "square.and.arrow.down.fill",
+              "color": "#22945F",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "ctrl+s"
+                }
+              ],
+              "id": "win_ruaj"
+            }
+          ]
+        },
+        {
+          "name": "Audio",
+          "buttons": [
+            {
+              "label": "Mikrofoni on/off",
+              "symbol": "mic.slash.fill",
+              "color": "#D93F45",
+              "mode": "tap",
+              "actions": [
+                {
+                  "audio": "mic_toggle"
+                }
+              ],
+              "id": "win_mikrofoni_on_off"
+            },
+            {
+              "label": "Kufje ↔ Altoparlantë",
+              "symbol": "headphones",
+              "color": "#4F46C8",
+              "mode": "tap",
+              "actions": [
+                {
+                  "audio": "output_next"
+                }
+              ],
+              "id": "win_kufje_altoparlant"
+            },
+            {
+              "label": "Mute kompjuteri",
+              "symbol": "speaker.slash.fill",
+              "color": "#E8651A",
+              "mode": "tap",
+              "actions": [
+                {
+                  "audio": "master_mute"
+                }
+              ],
+              "id": "win_mute_kompjuteri"
+            },
+            {
+              "label": "Volum +",
+              "symbol": "speaker.wave.3.fill",
+              "color": "#E8651A",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "volume up"
+                }
+              ],
+              "id": "win_volum_3"
+            },
+            {
+              "label": "Volum −",
+              "symbol": "speaker.wave.1.fill",
+              "color": "#E8651A",
+              "mode": "repeat",
+              "actions": [
+                {
+                  "keys": "volume down"
+                }
+              ],
+              "id": "win_volum_4"
+            },
+            {
+              "label": "Play / Pause",
+              "symbol": "playpause.fill",
+              "color": "#2F6FED",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "play/pause media"
+                }
+              ],
+              "id": "win_play_pause_2"
+            },
+            {
+              "label": "Kënga para",
+              "symbol": "backward.end.fill",
+              "color": "#2F6FED",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "previous track"
+                }
+              ],
+              "id": "win_k_nga_para"
+            },
+            {
+              "label": "Kënga tjetër",
+              "symbol": "forward.end.fill",
+              "color": "#2F6FED",
+              "mode": "tap",
+              "actions": [
+                {
+                  "keys": "next track"
+                }
+              ],
+              "id": "win_k_nga_tjet_r_2"
+            },
+            {
+              "label": "Screenshot i plotë",
+              "symbol": "camera.fill",
+              "color": "#8448C4",
+              "mode": "tap",
+              "actions": [
+                {
+                  "screenshot": true
+                }
+              ],
+              "id": "win_screenshot_i_plot"
+            },
+            null,
+            {
+              "label": "Dosja Videos",
+              "symbol": "film.stack",
+              "color": "#22945F",
+              "mode": "tap",
+              "actions": [
+                {
+                  "open": "%USERPROFILE%\\Videos"
+                }
+              ],
+              "id": "win_dosja_videos"
+            },
+            {
+              "label": "Cilësimet e zërit",
+              "symbol": "gearshape.fill",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "run": "start ms-settings:sound"
+                }
+              ],
+              "id": "win_cil_simet_e_z_rit"
+            },
+            {
+              "label": "Volume Mixer",
+              "symbol": "slider.vertical.3",
+              "color": "#454B57",
+              "mode": "tap",
+              "actions": [
+                {
+                  "run": "start ms-settings:apps-volume"
+                }
+              ],
+              "id": "win_volume_mixer"
+            }
+          ]
+        }
+      ],
+      "ease": false,
+      "grid": {
+        "rows": 4,
+        "cols": 5
+      }
+    }
+  ]
+}

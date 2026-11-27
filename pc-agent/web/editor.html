@@ -96,6 +96,36 @@
   .jogrow button { padding: 0; background: transparent; color: var(--dim); }
   .modal { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; z-index: 20; }
   .modal.show { display: flex; }
+  #brandsModal .box { width: min(980px, 96vw); height: min(760px, 92vh); display: grid; grid-template-columns: 240px minmax(0,1fr); gap: 0; padding: 0; overflow: hidden; }
+  .br-left { background: var(--bg); border-right: 1px solid var(--stroke); padding: 16px; overflow: auto; display: flex; flex-direction: column; gap: 4px; }
+  .br-right { padding: 18px 20px; overflow: auto; }
+  .br-item { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 10px; cursor: pointer; }
+  .br-item:hover { background: var(--raised); } .br-item.sel { background: var(--raised2); }
+  .br-dots { display: flex; gap: 2px; flex: none; } .br-dots i { width: 10px; height: 10px; border-radius: 3px; display: block; border: 1px solid rgba(255,255,255,.15); }
+  .br-colors { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 8px; }
+  .br-color { background: var(--raised); border: 1px solid var(--stroke); border-radius: 12px; overflow: hidden; }
+  .br-color .big { height: 64px; position: relative; cursor: pointer; }
+  .br-color .big input[type=color] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+  .br-color .body { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .br-color .body input { padding: 5px 7px; font-size: 12px; }
+  .br-color .hex { font-family: Consolas, monospace; text-transform: uppercase; }
+  .br-color .tools { display: flex; gap: 4px; } .br-color .tools button { flex: 1; padding: 4px; font-size: 12px; }
+  .br-drop { margin-top: 8px; border: 2px dashed rgba(255,255,255,.15); border-radius: 12px; padding: 16px; text-align: center; color: var(--dim); cursor: pointer; }
+  .br-drop.over { border-color: var(--accent); color: var(--text); background: rgba(82,137,255,.08); }
+  .br-logos { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-top: 10px; }
+  .br-logo { background: var(--raised); border-radius: 10px; padding: 6px; text-align: center; font-size: 11px; color: var(--dim); overflow: hidden; }
+  .br-logo .im { height: 80px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--text);
+    background: repeating-conic-gradient(#2a2d33 0% 25%, #1d1f23 0% 50%) 50% / 14px 14px; }
+  .br-logo img { max-width: 100%; max-height: 80px; }
+  .br-logo div:last-child { margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #pathsModal .box { width: min(900px, 96vw); max-height: 90vh; overflow: auto; }
+  .pt-row { display: grid; grid-template-columns: 26px minmax(120px, 1fr) minmax(0, 2.4fr) auto; gap: 8px; align-items: center;
+    background: var(--raised); border: 1px solid var(--stroke); border-radius: 10px; padding: 8px 10px; margin-top: 8px; }
+  .pt-row input { padding: 7px 9px; font-size: 13px; }
+  .pt-row .pth { font-family: Consolas, monospace; font-size: 12.5px; }
+  .pt-row .tools { display: flex; gap: 4px; } .pt-row .tools button { padding: 6px 9px; font-size: 12px; }
+  .pt-row .st { width: 10px; height: 10px; border-radius: 50%; background: var(--ok); justify-self: center; }
+  .pt-row .st.missing { background: var(--bad); }
   .ta { width: 100%; background: var(--raised); border: 1px solid var(--stroke); border-radius: 8px; padding: 8px; color: inherit; font: 12px Consolas, monospace; }
   .modal .box { background: var(--panel); border: 1px solid var(--stroke); border-radius: 16px; width: 520px; max-height: 92vh; overflow: auto; padding: 20px; }
   kbd { background: var(--raised2); border-radius: 4px; padding: 1px 6px; font-family: Consolas, monospace; font-size: 12px; }
@@ -114,6 +144,9 @@
     <span class="dirty" id="dirty"></span>
     <button class="ghost" id="btnSendDoc" title="Dërgo PDF, foto ose video te iPad-i">📄 Dërgo te iPad</button>
     <input type="file" id="fileSendDoc" multiple hidden>
+    <button class="primary" id="btnUpdate" style="display:none;background:var(--warn);color:#000" title="Instalo versionin e ri">⬆ Përditëso</button>
+    <button class="ghost" id="btnPaths" title="Rrugët e dosjeve që iPad-i i vendos te fusha ku je">📁 Rrugët</button>
+    <button class="ghost" id="btnBrands" title="Ngjyrat dhe logot e brendeve">🎨 Brendet</button>
     <button class="ghost" id="btnSettings">⚙ Cilësimet</button>
     <button class="ghost" id="btnExport">Eksporto</button>
     <button class="ghost" id="btnImport">Importo</button>
@@ -206,11 +239,62 @@
     <label>Dosjet ku eksporton (një për rresht, kontrollohen edhe nën-dosjet)</label>
     <textarea id="sFolders" rows="4" style="width:100%;background:var(--raised);border:1px solid var(--stroke);border-radius:8px;padding:8px;color:inherit;font:12px Consolas,monospace" placeholder="D:\Projekte\Klienti\Exports"></textarea>
     <div class="row" style="margin-top:8px"><button id="btnRenderTest">Testo njoftimin në iPad</button><span class="muted" id="sRendering"></span></div>
+    <h3>Butonat</h3>
+    <label style="display:flex;gap:8px;align-items:center;color:var(--text)"><input type="checkbox" id="sGuard"> Paralajmëro dhe mos i dërgo tastet kur programi i gabuar është përpara</label>
+    <div class="muted" style="margin-left:24px">P.sh. butonat e Premiere-s nuk dërgojnë asgjë nëse përpara është Chrome. Zëri, screenshot-i dhe profili Windows punojnë kudo.</div>
+    <label style="display:flex;gap:8px;align-items:center;color:var(--text)"><input type="checkbox" id="sFav"> Faqja “⭐ Më të përdorurit” në iPad (krijohet vetë nga butonat që shtyp më shpesh)</label>
+    <div class="row" style="margin-top:6px"><button class="fit" id="btnUsageReset">Fshi statistikat e ⭐</button><span></span></div>
+    <h3>Përditësimi</h3>
+    <div class="muted" id="updInfo">–</div>
+    <div class="row" style="margin-top:6px"><button class="fit" id="btnUpdCheck">Kontrollo tani</button><button class="primary fit" id="btnUpdApply" style="display:none">⬆ Instalo përditësimin</button><span></span></div>
+    <div class="row">
+      <div style="flex:2"><label>Repo në GitHub</label><input id="sUpdRepo" placeholder="elbunit/usb-deck"></div>
+      <div><label>Dega</label><input id="sUpdBranch" placeholder="main"></div>
+    </div>
+    <label>Token (vetëm nëse repo është “Private”)</label>
+    <input id="sUpdToken" type="password" autocomplete="off" placeholder="bosh nëse repo është Public">
+    <label style="display:flex;gap:8px;align-items:center;color:var(--text)"><input type="checkbox" id="sUpdAuto"> Kontrollo vetë për versione të reja (çdo 6 orë)</label>
     <h3>Rivendosje</h3>
     <button class="danger" id="btnDefaults">Rikthe profilet origjinale</button>
     <div class="row" style="margin-top:18px; justify-content:flex-end">
       <span></span><button class="fit" id="sClose">Mbyll</button><button class="primary fit" id="sApply">Apliko</button>
     </div>
+  </div>
+</div>
+
+<div class="modal" id="brandsModal">
+  <div class="box">
+    <div class="br-left">
+      <h2 style="margin:0 0 10px;font-size:18px">🎨 Brendet</h2>
+      <div id="brList"></div>
+      <button id="brAdd" style="margin-top:8px">+ Brend i ri</button>
+      <div style="flex:1"></div>
+      <div class="muted" style="margin-top:12px">Ruhen në PC dhe shfaqen te mjeti “Brendet” në iPad.</div>
+    </div>
+    <div class="br-right">
+      <div class="row" style="justify-content:flex-end;margin-bottom:6px">
+        <span class="dirty" id="brDirty" style="flex:1"></span>
+        <button class="fit" id="brClose">Mbyll</button>
+        <button class="primary fit" id="brSave">Ruaj & dërgo te iPad</button>
+      </div>
+      <div id="brDetail"></div>
+    </div>
+  </div>
+  <input type="file" id="brFile" multiple hidden accept=".png,.jpg,.jpeg,.webp,.svg,.psd,.ai,.eps,.pdf,.tif,.tiff,.gif,.bmp,.mov,.mp4">
+</div>
+
+<div class="modal" id="pathsModal">
+  <div class="box">
+    <div class="row" style="align-items:center">
+      <h2 style="margin:0;flex:1">📁 Rrugët e dosjeve</h2>
+      <span class="dirty" id="ptDirty"></span>
+      <button class="fit" id="ptClose">Mbyll</button>
+      <button class="primary fit" id="ptSave">Ruaj & dërgo te iPad</button>
+    </div>
+    <div class="muted" style="margin:8px 0 4px">Në iPad (mjeti <b>Rrugët</b>) prek një rrugë dhe ajo <b>vendoset te fusha ku je në PC</b> – p.sh. te “Save As”, te vendi i eksportit ose te shiriti i adresës në Explorer. Nuk e hap dosjen.
+    Më e reja del e para. Shpejt: në Explorer kliko me të djathtën një dosje › <b>Send to › Shto si rrugë</b> (instaloje me “Instalo Send-to iPad.bat”).</div>
+    <div id="ptList"></div>
+    <div class="row" style="margin-top:10px"><button class="fit" id="ptAdd">+ Shto rrugë</button><button class="fit" id="ptPick">📂 Zgjidh dosjen në PC…</button><span></span></div>
   </div>
 </div>
 
@@ -283,6 +367,12 @@ async function pollStatus() {
     status = await api("/api/status");
     $("ver").textContent = "v" + status.version;
     setPill("pIpad", status.connected ? "on" : "", status.connected ? ("iPad · " + (status.device || "USB")) : "iPad pa lidhje");
+    if (status.ipad_expires) {
+      const left = status.ipad_expires * 1000 - Date.now(), d = new Date(status.ipad_expires * 1000);
+      const when = d.toLocaleDateString("sq", { day: "numeric", month: "short" }) + " " + d.toTimeString().slice(0, 5);
+      $("pIpad").title = "Aplikacioni në iPad vlen deri më " + when;
+      if (status.connected && left < 36 * 3600 * 1000) setPill("pIpad", "warn", left <= 0 ? "iPad · app-i skadoi!" : "iPad · skadon " + when);
+    }
     setPill("pKeys", status.keyboard ? "on" : "warn", status.keyboard ? "Tastiera OK" : "Tastiera: dry-run");
     setPill("pAe", status.ae_path ? "on" : "", status.ae_path ? "After Effects" : "AE s'u gjet");
     setPill("pAudio", status.audio === "windows" ? "on" : (status.audio === "simulated" ? "warn" : ""), status.audio === "windows" ? "Mikseri OK" : (status.audio === "simulated" ? "Mikseri: simulim" : "Mikseri s'punon"));
@@ -766,6 +856,11 @@ function openSettings() {
   $("sRender").checked = s.render_notify !== false;
   $("sRenderSound").checked = s.render_sound !== false;
   $("sFolders").value = (s.render_folders || []).join("\n");
+  $("sGuard").checked = s.guard_foreground !== false;
+  $("sFav").checked = s.favorites_page !== false;
+  $("sUpdRepo").value = s.update_repo || ""; $("sUpdBranch").value = s.update_branch || "main";
+  $("sUpdToken").value = s.update_token || ""; $("sUpdAuto").checked = s.update_auto_check !== false;
+  refreshUpdate();
   $("sRendering").textContent = (status.rendering || []).length ? ("Duke renderuar: " + status.rendering.join(", ")) : "";
   $("modal").classList.add("show");
 }
@@ -795,6 +890,12 @@ function applySettings() {
   s.time_tracking = $("sTime").checked;
   s.idle_minutes = Math.max(1, +$("sIdle").value || 5);
   s.timecode_start_hours = { "adobe premiere pro.exe": +$("sTcPr").value || 0, "resolve.exe": +$("sTcDr").value || 0, "afterfx.exe": +$("sTcAe").value || 0 };
+  s.guard_foreground = $("sGuard").checked;
+  s.favorites_page = $("sFav").checked;
+  s.update_repo = $("sUpdRepo").value.trim() || "elbunit/usb-deck";
+  s.update_branch = $("sUpdBranch").value.trim() || "main";
+  s.update_token = $("sUpdToken").value.trim();
+  s.update_auto_check = $("sUpdAuto").checked;
   s.render_notify = $("sRender").checked;
   s.render_sound = $("sRenderSound").checked;
   s.render_folders = $("sFolders").value.split("\n").map(x => x.trim()).filter(Boolean);
@@ -806,10 +907,271 @@ async function resetDefaults() {
   $("modal").classList.remove("show"); render(); toast("U rikthyen – kliko Ruaj");
 }
 
+// ------------------------------------------------------------------ updates
+function showUpdate(u) {
+  $("btnUpdate").style.display = u.available ? "" : "none";
+  if (u.available) $("btnUpdate").textContent = "⬆ Përditëso në v" + u.latest;
+  const info = $("updInfo"); if (!info) return;
+  info.textContent = u.error ? ("⚠ " + u.error)
+    : u.available ? `Ke v${u.current}. Versioni i ri v${u.latest} është gati.`
+    : u.latest ? `Ke versionin më të ri (v${u.current}).` : `Versioni yt: v${u.current}. Ende pa u kontrolluar.`;
+  $("btnUpdApply").style.display = u.available ? "" : "none";
+}
+async function refreshUpdate() { try { showUpdate(await api("/api/update")); } catch (e) {} }
+async function doUpdate() {
+  if (!confirm("Të instalohet versioni i ri? Agjenti riniset vetë (rreth 5 sekonda). Profilet dhe brendet nuk preken.")) return;
+  toast("Po shkarkoj nga GitHub…");
+  try {
+    const r = await api("/api/update_apply", {});
+    toast(r.message);
+    if (r.restarting) setTimeout(() => location.reload(), 7000);
+  } catch (e) { toast(e.message); }
+}
+document.addEventListener("click", async (e) => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.id === "btnUpdate" || t.id === "btnUpdApply") return doUpdate();
+  if (t.id === "btnUpdCheck") {
+    $("updInfo").textContent = "Po kontrolloj…";
+    const body = { repo: $("sUpdRepo").value.trim(), branch: $("sUpdBranch").value.trim(), token: $("sUpdToken").value.trim() };
+    try { showUpdate(await api("/api/update_check", body)); } catch (er) { $("updInfo").textContent = er.message; }
+    return;
+  }
+  if (t.id === "btnUsageReset") {
+    if (!confirm("Të fshihen statistikat? Faqja ⭐ zhduket derisa të mblidhen prapë.")) return;
+    api("/api/usage_reset", {}).then(() => toast("U fshinë ✓")).catch(er => toast(er.message));
+  }
+});
+refreshUpdate(); setInterval(refreshUpdate, 60000);
+
 // ------------------------------------------------------------------ start
 $("symbols").innerHTML = SYMBOLS.map(s => `<option value="${s}">`).join("");
 pollStatus().then(load).catch(e => { document.body.innerHTML = `<div class="empty-state">Nuk lidhem dot me agjentin: ${esc(e.message)}</div>`; });
 setInterval(pollStatus, 1500);
+</script>
+<script>
+"use strict";
+// ------------------------------------------------------------------ brands (separate from the button editor)
+(() => {
+  const B = { list: [], sel: 0, saved: "", logos: null };
+  const hexOk = (h) => /^#[0-9A-F]{6}$/.test(h);
+  const normHex = (h) => { h = String(h || "").trim().toUpperCase(); if (h && h[0] !== "#") h = "#" + h;
+    if (/^#[0-9A-F]{3}$/.test(h)) h = "#" + h[1] + h[1] + h[2] + h[2] + h[3] + h[3]; return h; };
+  const dirty = () => JSON.stringify(B.list) !== B.saved;
+  const cur = () => B.list[B.sel];
+  const textOn = (hx) => { const n = parseInt(hx.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+    return (0.299 * r + 0.587 * g + 0.114 * b) > 150 ? "#000" : "#fff"; };
+  function markDirty() { $("brDirty").textContent = dirty() ? "● Ndryshime të paruajtura" : ""; }
+
+  async function open() {
+    try { const r = await api("/api/brands"); B.list = r.brands || []; B.saved = JSON.stringify(B.list); }
+    catch (e) { return toast(e.message); }
+    B.sel = Math.min(B.sel, Math.max(0, B.list.length - 1));
+    $("brandsModal").classList.add("show"); renderAll(); loadLogos();
+  }
+  function close() {
+    if (dirty() && !confirm("Ke ndryshime të paruajtura te brendet. Të mbyllet pa i ruajtur?")) return;
+    $("brandsModal").classList.remove("show");
+  }
+  async function save(silent) {
+    for (const b of B.list) {
+      const bad = b.colors.find(c => !hexOk(normHex(c.hex)));
+      if (bad) { toast(`Kod i gabuar te “${b.name}”: ${bad.hex}`); return false; }
+      b.colors.forEach(c => c.hex = normHex(c.hex));
+    }
+    try {
+      const r = await api("/api/brands", { brands: B.list });
+      B.list = r.brands; B.saved = JSON.stringify(B.list); markDirty(); renderAll();
+      if (!silent) toast(r.pushed ? "U ruajt dhe u dërgua te iPad-i ✓" : "U ruajt ✓ (iPad-i s'është i lidhur)");
+      return true;
+    } catch (e) { toast(e.message); return false; }
+  }
+  function renderAll() { renderList(); renderDetail(); markDirty(); }
+  function renderList() {
+    $("brList").innerHTML = B.list.map((b, i) => `<div class="br-item ${i === B.sel ? "sel" : ""}" data-brsel="${i}">
+      <span class="br-dots">${b.colors.slice(0, 4).map(c => `<i style="background:${esc(c.hex)}"></i>`).join("")}</span>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(b.name)}</span>
+      <span class="muted">${b.colors.length}</span></div>`).join("") || `<div class="muted">Asnjë brend ende.</div>`;
+  }
+  function renderDetail() {
+    const b = cur();
+    if (!b) { $("brDetail").innerHTML = `<div class="empty-state">Kliko “+ Brend i ri” për të filluar.</div>`; return; }
+    $("brDetail").innerHTML = `
+      <div class="row"><div style="flex:3"><label>Emri i brendit</label><input id="brName" value="${esc(b.name)}"></div>
+        <button class="danger fit" id="brDel" style="margin-top:26px">Fshi brendin</button></div>
+      <label>Shënime (fonti, rregulla, etj.)</label>
+      <input id="brNote" value="${esc(b.note || "")}" placeholder="p.sh. Fonti: Montserrat Bold">
+      <h3>Ngjyrat (${b.colors.length})</h3>
+      <div class="row">
+        <input id="brPaste" style="flex:3" placeholder="Ngjit një ose shumë kode HEX, p.sh.  #E30613, #1A1A1A  000000">
+        <button class="fit" id="brPasteAdd">Shto kodet</button>
+        <button class="fit" id="brColorAdd">+ Ngjyrë</button>
+      </div>
+      <div class="br-colors">${b.colors.map((c, i) => {
+        const hx = hexOk(normHex(c.hex)) ? normHex(c.hex) : "#000000";
+        return `<div class="br-color">
+          <div class="big" style="background:${hx};color:${textOn(hx)}" title="Kliko për ta ndryshuar">
+            <input type="color" value="${hx}" data-brpick="${i}"></div>
+          <div class="body">
+            <input class="hex" value="${esc(c.hex)}" data-brhex="${i}" maxlength="7">
+            <input value="${esc(c.name || "")}" data-brcname="${i}" placeholder="Emri (opsional)">
+            <div class="tools"><button data-brleft="${i}" title="Majtas">◀</button><button data-brcopy="${i}" title="Kopjo kodin">⧉</button>
+              <button data-brright="${i}" title="Djathtas">▶</button><button data-brrm="${i}" title="Fshi">✕</button></div>
+          </div></div>`; }).join("")}</div>
+      <h3>Logot</h3>
+      <div class="muted" id="brLogoFolder">Po ngarkoj…</div>
+      <div class="br-drop" id="brDrop">⬇ Tërhiq logot këtu ose kliko për t'i zgjedhur (PNG, SVG, PSD, AI, PDF, MOV…)</div>
+      <div class="row" style="margin-top:8px"><button class="fit" id="brOpenFolder">📂 Hap dosjen e logove</button><button class="fit" id="brReload">↻ Rifresko</button><span></span></div>
+      <div class="br-logos" id="brLogos"></div>`;
+    renderLogos();
+  }
+  function renderLogos() {
+    const el = $("brLogos"); if (!el) return;
+    const L = B.logos;
+    if (!L || L.brand !== (cur() || {}).id) { $("brLogoFolder").textContent = cur() && B.saved.includes(`"${cur().id}"`) ? "Po ngarkoj…" : "Ruaj brendin njëherë që të shtosh logot."; el.innerHTML = ""; return; }
+    $("brLogoFolder").textContent = L.folder;
+    el.innerHTML = L.items.map(it => `<div class="br-logo"><div class="im">${it.thumb ? `<img src="data:image/png;base64,${it.thumb}">` : esc(it.ext.toUpperCase())}</div>
+      <div title="${esc(it.name)}.${esc(it.ext)}">${esc(it.name)}</div></div>`).join("") || `<div class="muted">Asnjë logo ende.</div>`;
+  }
+  async function loadLogos() {
+    const b = cur(); B.logos = null; renderLogos();
+    if (!b || !B.saved.includes(`"${b.id}"`)) return;
+    try { const r = await fetch("/api/brand_logos?id=" + encodeURIComponent(b.id)).then(x => x.json());
+      if (cur() && cur().id === b.id && r.items) { B.logos = { brand: b.id, folder: r.folder, items: r.items }; renderLogos(); } } catch (e) {}
+  }
+  async function upload(files) {
+    const b = cur(); if (!b || !files.length) return;
+    if (dirty() && !(await save(true))) return;
+    let ok = 0;
+    for (const f of files) {
+      const r = await fetch("/api/brand_logo_upload", { method: "POST", headers: { "X-Brand": encodeURIComponent(b.id), "X-Filename": encodeURIComponent(f.name) }, body: f });
+      const j = await r.json().catch(() => ({}));
+      if (r.ok) ok++; else toast(`${f.name}: ${j.error || r.status}`);
+    }
+    if (ok) toast(`${ok} logo u shtuan ✓`);
+    loadLogos();
+  }
+
+  document.addEventListener("click", async (e) => {
+    const t = e.target.closest("button, .br-item, #brDrop"); if (!t) return;
+    if (t.id === "btnBrands") return open();
+    if (!$("brandsModal").classList.contains("show")) return;
+    const d = t.dataset, b = cur();
+    if (d.brsel !== undefined) { B.sel = +d.brsel; renderAll(); return loadLogos(); }
+    if (d.brrm !== undefined) { b.colors.splice(+d.brrm, 1); return renderAll(); }
+    if (d.brleft !== undefined) { const i = +d.brleft; if (i > 0) [b.colors[i - 1], b.colors[i]] = [b.colors[i], b.colors[i - 1]]; return renderAll(); }
+    if (d.brright !== undefined) { const i = +d.brright; if (i < b.colors.length - 1) [b.colors[i + 1], b.colors[i]] = [b.colors[i], b.colors[i + 1]]; return renderAll(); }
+    if (d.brcopy !== undefined) { const h = normHex(b.colors[+d.brcopy].hex); navigator.clipboard?.writeText(h).then(() => toast(h + " u kopjua")); return; }
+    switch (t.id) {
+      case "brClose": return close();
+      case "brSave": return save(false);
+      case "brAdd": B.list.push({ id: uid("br"), name: "Brend i ri", note: "", colors: [] }); B.sel = B.list.length - 1; renderAll(); $("brName").select(); return loadLogos();
+      case "brDel": if (confirm(`Të fshihet brendi “${b.name}”? (Logot në dosje nuk fshihen)`)) { B.list.splice(B.sel, 1); B.sel = Math.max(0, B.sel - 1); renderAll(); loadLogos(); } return;
+      case "brColorAdd": b.colors.push({ hex: "#FFFFFF", name: "" }); return renderAll();
+      case "brPasteAdd": {
+        const found = ($("brPaste").value.match(/#?\b[0-9a-fA-F]{6}\b/g) || []).map(normHex);
+        if (!found.length) return toast("S'u gjet asnjë kod HEX (p.sh. #E30613)");
+        found.forEach(h => b.colors.push({ hex: h, name: "" })); toast(`${found.length} ngjyra u shtuan`); return renderAll();
+      }
+      case "brDrop": return $("brFile").click();
+      case "brOpenFolder":
+        if (dirty() && !(await save(true))) return;
+        api("/api/brand_open_logos", { id: b.id }).then(() => toast("Dosja u hap në PC")).catch(er => toast(er.message)); return;
+      case "brReload": return loadLogos();
+    }
+  });
+  document.addEventListener("input", (e) => {
+    const t = e.target; if (!t.closest || !t.closest("#brandsModal")) return;
+    const b = cur(); if (!b) return; const d = t.dataset;
+    if (t.id === "brName") { b.name = t.value; renderList(); }
+    else if (t.id === "brNote") b.note = t.value;
+    else if (d.brcname !== undefined) b.colors[+d.brcname].name = t.value;
+    else if (d.brhex !== undefined) {
+      b.colors[+d.brhex].hex = t.value;
+      const h = normHex(t.value), big = t.closest(".br-color").querySelector(".big");
+      if (hexOk(h)) { big.style.background = h; big.style.color = textOn(h); big.querySelector("input").value = h; }
+      renderList();
+    } else if (d.brpick !== undefined) {
+      const h = t.value.toUpperCase(); b.colors[+d.brpick].hex = h;
+      const card = t.closest(".br-color"); card.querySelector(".big").style.background = h; card.querySelector(".hex").value = h; renderList();
+    }
+    markDirty();
+  });
+  $("brFile").addEventListener("change", (e) => { upload([...e.target.files]); e.target.value = ""; });
+  document.addEventListener("dragover", (e) => { const z = e.target.closest && e.target.closest("#brDrop"); if (z) { e.preventDefault(); z.classList.add("over"); } });
+  document.addEventListener("dragleave", (e) => { const z = e.target.closest && e.target.closest("#brDrop"); if (z) z.classList.remove("over"); });
+  document.addEventListener("drop", (e) => { const z = e.target.closest && e.target.closest("#brDrop"); if (z) { e.preventDefault(); z.classList.remove("over"); upload([...e.dataTransfer.files]); } });
+  document.addEventListener("keydown", (e) => {
+    if (!$("brandsModal").classList.contains("show")) return;
+    if (e.key === "Escape") { e.stopPropagation(); close(); }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); e.stopImmediatePropagation(); save(false); }
+  }, true);
+})();
+</script>
+<script>
+"use strict";
+// ------------------------------------------------------------------ folder paths ("Rrugët")
+(() => {
+  const P = { list: [], saved: "" };
+  const strip = (l) => JSON.stringify(l.map(({ id, name, path }) => ({ id, name, path })));
+  const dirty = () => strip(P.list) !== P.saved;
+  const mark = () => { $("ptDirty").textContent = dirty() ? "● Ndryshime të paruajtura" : ""; };
+  async function open() {
+    try { const r = await api("/api/paths"); P.list = r.paths || []; P.saved = strip(P.list); } catch (e) { return toast(e.message); }
+    $("pathsModal").classList.add("show"); render();
+  }
+  function close() {
+    if (dirty() && !confirm("Ke ndryshime të paruajtura te rrugët. Të mbyllet pa i ruajtur?")) return;
+    $("pathsModal").classList.remove("show");
+  }
+  async function save() {
+    const bad = P.list.find(x => !x.path.trim()); if (bad) return toast("Një rresht nuk ka rrugë");
+    try { const r = await api("/api/paths", { paths: P.list }); P.list = r.paths; P.saved = strip(P.list); render();
+      toast(r.pushed ? "U ruajt dhe u dërgua te iPad-i ✓" : "U ruajt ✓ (iPad-i s'është i lidhur)"); }
+    catch (e) { toast(e.message); }
+  }
+  function render() {
+    $("ptList").innerHTML = P.list.map((x, i) => `<div class="pt-row">
+      <span class="st ${x.exists === false ? "missing" : ""}" title="${x.exists === false ? "Dosja nuk ekziston" : "OK"}"></span>
+      <input value="${esc(x.name)}" data-ptname="${i}" placeholder="Emri">
+      <input class="pth" value="${esc(x.path)}" data-ptpath="${i}" placeholder="C:\\Projektet\\Klienti\\Eksport">
+      <div class="tools"><button data-ptpick="${i}" title="Zgjidh dosjen">📂</button><button data-ptup="${i}" title="Lart">▲</button>
+        <button data-ptdown="${i}" title="Poshtë">▼</button><button data-ptrm="${i}" title="Fshi">✕</button></div></div>`).join("")
+      || `<div class="empty-state" style="padding:30px">Asnjë rrugë ende. Kliko “+ Shto rrugë” ose “Zgjidh dosjen në PC…”.</div>`;
+    mark();
+  }
+  async function pick(initial) {
+    try { const r = await api("/api/pick_folder", { initial }); return r.path || ""; } catch (e) { toast(e.message); return ""; }
+  }
+  const baseName = (p) => p.replace(/[\\/]+$/, "").split(/[\\/]/).pop() || p;
+  document.addEventListener("click", async (e) => {
+    const t = e.target.closest("button"); if (!t) return;
+    if (t.id === "btnPaths") return open();
+    if (!$("pathsModal").classList.contains("show")) return;
+    const d = t.dataset;
+    if (d.ptrm !== undefined) { P.list.splice(+d.ptrm, 1); return render(); }
+    if (d.ptup !== undefined) { const i = +d.ptup; if (i > 0) [P.list[i - 1], P.list[i]] = [P.list[i], P.list[i - 1]]; return render(); }
+    if (d.ptdown !== undefined) { const i = +d.ptdown; if (i < P.list.length - 1) [P.list[i + 1], P.list[i]] = [P.list[i], P.list[i + 1]]; return render(); }
+    if (d.ptpick !== undefined) { const i = +d.ptpick, p = await pick(P.list[i].path); if (p) { P.list[i].path = p; P.list[i].exists = true; render(); } return; }
+    if (t.id === "ptClose") return close();
+    if (t.id === "ptSave") return save();
+    if (t.id === "ptAdd") { P.list.unshift({ id: uid("p"), name: "", path: "" }); render(); document.querySelector('[data-ptpath="0"]').focus(); return; }
+    if (t.id === "ptPick") { const p = await pick(""); if (p) { P.list.unshift({ id: uid("p"), name: baseName(p), path: p, exists: true }); render(); } }
+  });
+  document.addEventListener("input", (e) => {
+    const t = e.target; if (!t.closest || !t.closest("#pathsModal")) return;
+    if (t.dataset.ptname !== undefined) P.list[+t.dataset.ptname].name = t.value;
+    if (t.dataset.ptpath !== undefined) {
+      const x = P.list[+t.dataset.ptpath]; const auto = !x.name || x.name === baseName(x.path);
+      x.path = t.value.replace(/^"|"$/g, ""); if (auto) { x.name = baseName(x.path); const n = t.closest(".pt-row").querySelector("[data-ptname]"); n.value = x.name; }
+    }
+    mark();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (!$("pathsModal").classList.contains("show")) return;
+    if (e.key === "Escape") { e.stopPropagation(); close(); }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); e.stopImmediatePropagation(); save(); }
+  }, true);
+})();
 </script>
 </body>
 </html>

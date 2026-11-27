@@ -30,6 +30,8 @@ final class Connection: ObservableObject {
 
     @Published var launchers: [LauncherItem] = []
     @Published var launchersScanning = false
+    @Published var paths: [PathItem] = []
+    @Published var explorerFolders: [ExplorerFolder]? = nil
 
     weak var transfers: TransferManager?
     weak var screen: ScreenModel?
@@ -119,9 +121,12 @@ final class Connection: ObservableObject {
             case .ready:
                 DispatchQueue.main.async {
                     self.connected = true
+                    UIApplication.shared.isIdleTimerDisabled = true   // never sleep while connected
                     self.transfers?.pump()
                 }
-                self.send(["type": "hello", "client": "ipad", "version": 1])
+                var hello: [String: Any] = ["type": "hello", "client": "ipad", "version": 2]
+                if let exp = AppExpiry.date { hello["expires"] = exp.timeIntervalSince1970 }
+                self.send(hello)
             case .failed, .cancelled:
                 if self.connection === conn {
                     self.connection = nil
@@ -285,6 +290,12 @@ final class Connection: ObservableObject {
                 self.screen?.sources = msg.items
                 if let c = msg.current { self.screen?.current = c }
             }
+        case "paths":
+            guard let msg = try? decoder.decode(PathsMessage.self, from: body) else { return }
+            DispatchQueue.main.async { self.paths = msg.items }
+        case "paths_explorer":
+            guard let msg = try? decoder.decode(ExplorerFoldersMessage.self, from: body) else { return }
+            DispatchQueue.main.async { self.explorerFolders = msg.items }
         case "launchers":
             guard let msg = try? decoder.decode(LaunchersMessage.self, from: body) else { return }
             DispatchQueue.main.async {
@@ -428,6 +439,17 @@ final class Connection: ObservableObject {
     }
 
     func requestLaunchers() { send(["type": "launchers_request"]) }
+
+    func requestPaths() { send(["type": "paths_request"]) }
+    func insertPath(_ id: String, enter: Bool) { send(["type": "path_insert", "id": id, "enter": enter]) }
+    func revealPath(_ id: String) { send(["type": "path_reveal", "id": id]) }
+    func copyPath(_ id: String) { send(["type": "path_copy", "id": id]) }
+    func deletePath(_ id: String) { send(["type": "path_delete", "id": id]) }
+    func addPath(_ path: String, name: String = "") { send(["type": "path_add", "path": path, "name": name]) }
+    func requestExplorerFolders() {
+        explorerFolders = nil
+        send(["type": "paths_explorer"])
+    }
     func launch(_ index: Int) { send(["type": "launch", "index": index]) }
 
     func requestProjects() { send(["type": "projects_request"]) }

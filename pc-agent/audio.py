@@ -14,6 +14,7 @@ Ne sisteme jo-Windows (ose pa pycaw) punon nje "simulim" qe lejon testimin.
 
 from __future__ import annotations
 
+import gc
 import json
 import os
 import queue
@@ -78,7 +79,10 @@ class WindowsAudio:
         self.AudioUtilities = AudioUtilities
         self.IAudioEndpointVolume = IAudioEndpointVolume
 
-        comtypes.CoInitialize()
+        try:
+            comtypes.CoInitializeEx(0)  # COINIT_MULTITHREADED (see agent.py)
+        except OSError:
+            pass  # already initialised on this thread
         clsid_enum = GUID("{BCDE0395-E52F-467C-8E3D-C4579291692E}")
         self.enum = comtypes.CoCreateInstance(clsid_enum, IMMDeviceEnumerator, comtypes.CLSCTX_INPROC_SERVER)
 
@@ -101,7 +105,9 @@ class WindowsAudio:
     def _endpoint_volume(self, flow: int):
         dev = self.enum.GetDefaultAudioEndpoint(flow, 1)  # role: eMultimedia
         iface = dev.Activate(self.IAudioEndpointVolume._iid_, self.CLSCTX_ALL, None)
-        return self.cast(iface, self.POINTER(self.IAudioEndpointVolume)), dev.GetId()
+        # QueryInterface (not ctypes.cast): cast makes a second pointer without AddRef,
+        # so both get Released by the garbage collector -> access violation crash.
+        return iface.QueryInterface(self.IAudioEndpointVolume), dev.GetId()
 
     def _outputs(self) -> list[dict]:
         if time.time() - self._devices_time < 4 and self._devices_cache:
@@ -313,6 +319,7 @@ class AudioService(threading.Thread):
                     self.log(f"Gabim audio ({name}): {e}")
                     if reply:
                         reply("")
+            gc.collect()  # free COM objects here, on the audio thread
             try:
                 snap = backend.snapshot()
             except Exception as e:

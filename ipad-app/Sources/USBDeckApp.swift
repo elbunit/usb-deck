@@ -30,6 +30,7 @@ struct USBDeckApp: App {
                 .statusBar(hidden: true)
                 .onAppear {
                     UIApplication.shared.isIdleTimerDisabled = true
+                    AppExpiry.scheduleReminders()
                     transfers.conn = conn
                     conn.transfers = transfers
                     conn.docs = docs

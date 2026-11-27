@@ -1,0 +1,36 @@
+[
+  {
+    "id": "5cef7edc",
+    "name": "Dormeo",
+    "note": "",
+    "colors": [
+      {
+        "hex": "#FFFFFF",
+        "name": ""
+      }
+    ]
+  },
+  {
+    "id": "shembull",
+    "name": "Brend i ri",
+    "note": "",
+    "colors": [
+      {
+        "hex": "#0B1F3A",
+        "name": "Navy"
+      },
+      {
+        "hex": "#F2B705",
+        "name": "Ari"
+      },
+      {
+        "hex": "#F25C05",
+        "name": "Portokalli"
+      },
+      {
+        "hex": "#FFFFFF",
+        "name": "E bardhë"
+      }
+    ]
+  }
+]

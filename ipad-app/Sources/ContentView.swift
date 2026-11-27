@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 
 enum Tool: String, CaseIterable {
-    case premiere, scopes, mixer, music, screen, launcher, ai, beats, transfer, revisions, brands, projects, expressions, time, docs
+    case premiere, paths, scopes, mixer, music, screen, launcher, ai, beats, transfer, revisions, brands, projects, expressions, time, docs
 
     var title: String {
         switch self {
@@ -14,6 +14,7 @@ enum Tool: String, CaseIterable {
         case .beats: return "Ritmi"
         case .screen: return "Monitori"
         case .launcher: return "Programet"
+        case .paths: return "Rrugët"
         case .transfer: return "Dërgo te PC"
         case .revisions: return "Korrigjime"
         case .brands: return "Brendet"
@@ -34,6 +35,7 @@ enum Tool: String, CaseIterable {
         case .beats: return "metronome"
         case .screen: return "display"
         case .launcher: return "square.grid.2x2.fill"
+        case .paths: return "text.insert"
         case .transfer: return "square.and.arrow.up.on.square"
         case .revisions: return "checklist"
         case .brands: return "paintpalette.fill"
@@ -81,6 +83,7 @@ struct ContentView: View {
                         case .beats: BeatsView()
                         case .screen: ScreenView(fullscreen: $screenFull)
                         case .launcher: LauncherView()
+                        case .paths: PathsView()
                         case .transfer: TransferView()
                         case .revisions: RevisionsView()
                         case .brands: BrandsView()
@@ -339,6 +342,11 @@ private struct Sidebar: View {
                     .font(.system(size: 12))
                     .foregroundColor(Theme.textDim)
                     .lineLimit(1)
+            }
+
+            VStack(spacing: 0) {
+                ExpiryBanner()
+                Spacer(minLength: 0)
             }
 
             if !conn.renders.isEmpty {

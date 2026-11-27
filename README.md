@@ -163,7 +163,7 @@ Lidh iPad-in me kabllo, zgjidh **Trust / Beso** në iPad dhe shkruaj kodin e iPa
 - **⏮ ⏯ ⏭**, dhe rrëshqit shiritin e progresit për të shkuar në një pikë tjetër të këngës ose videos.
 - Nëse po luajnë dy programe (p.sh. Spotify dhe YouTube në Chrome), zgjedh lart cilin kontrollon.
 - Sliderat poshtë ndryshojnë **volumin vetëm të atij programi**, jo të gjithë PC-së.
-- Te **shiriti i poshtëm** shfaqen gjithmonë kopertina e vogël, titulli dhe ⏯. Prek kopertinën dhe hapet ekrani Muzika.
+- Te **shiriti i poshtëm** shfaqen gjithmonë kopertina e vogël, burimi (p.sh. YouTube) dhe ⏯. Prek kopertinën dhe hapet ekrani Muzika.
 - Punon me çdo program që shfaqet në panelin e medias së Windows-it, ai që del kur shtyp tastet e volumit.
 
 ### 🖥️ Monitori (iPad si ekran i dytë)
@@ -191,7 +191,7 @@ Windows-i ka nevojë për një "monitor virtual", që ta vendosësh dritaren atj
 - Programet nga Microsoft Store (p.sh. WhatsApp) mund të mos dalin automatikisht. Shtoji me dorë me shtegun e tyre.
 
 ### 🔊 Mikseri i volumit
-- Në iPad prek **Mikseri** te shiriti majtas, poshtë logos.
+- Në iPad prek **Mikseri** te veglat në shiritin majtas.
 - **Rrëshqit gishtin lart/poshtë** mbi një slider. Një prekje e thjeshtë nuk e ndryshon volumin, që të mos e lëvizësh pa dashje.
 - 🔇 poshtë çdo slideri e bën mute vetëm atë program.
 - Lart djathtas: **Mikrofoni NDEZUR/FIKUR**. Kur është i fikur, del me të kuqe edhe te shiriti majtas.

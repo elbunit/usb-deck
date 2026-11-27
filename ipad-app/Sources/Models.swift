@@ -220,6 +220,25 @@ struct LauncherItem: Decodable, Identifiable, Hashable {
 
 struct LaunchersMessage: Decodable { let items: [LauncherItem]; let scanning: Bool? }
 
+// MARK: - Folder paths ("Rrugët")
+
+struct PathItem: Decodable, Identifiable, Hashable {
+    let id: String
+    let name: String
+    let path: String
+    let exists: Bool?
+}
+
+struct PathsMessage: Decodable { let items: [PathItem] }
+
+struct ExplorerFolder: Decodable, Identifiable, Hashable {
+    let path: String
+    let name: String
+    var id: String { path }
+}
+
+struct ExplorerFoldersMessage: Decodable { let items: [ExplorerFolder] }
+
 // MARK: - Now playing
 
 struct MediaSourceItem: Decodable, Hashable, Identifiable {
