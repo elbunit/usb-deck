@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>USB Deck – Editori i butonave</title>
+<style>
+  :root {
+    --bg: #0e0f11; --panel: #16171a; --raised: #202227; --raised2: #2a2d33;
+    --stroke: rgba(255,255,255,.08); --text: #eceef2; --dim: rgba(255,255,255,.55);
+    --accent: #5289ff; --ok: #33cc73; --bad: #f25454; --warn: #e8a317;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font: 14px/1.4 "Segoe UI", system-ui, -apple-system, sans-serif; }
+  button, input, select { font: inherit; color: inherit; }
+  button { cursor: pointer; border: 0; border-radius: 8px; background: var(--raised2); padding: 7px 12px; }
+  button:hover { filter: brightness(1.15); }
+  button.primary { background: var(--accent); font-weight: 600; }
+  button.danger { background: #4a1f22; color: #ffb3b3; }
+  button.ghost { background: transparent; border: 1px solid var(--stroke); }
+  button:disabled { opacity: .45; cursor: default; filter: none; }
+  input, select { background: var(--raised); border: 1px solid var(--stroke); border-radius: 8px; padding: 7px 9px; width: 100%; outline: none; }
+  input:focus, select:focus { border-color: var(--accent); }
+  input[type=color] { padding: 2px; height: 34px; width: 46px; cursor: pointer; }
+  input[type=checkbox] { width: auto; }
+  label { display: block; font-size: 12px; color: var(--dim); margin: 10px 0 4px; }
+  h3 { margin: 18px 0 6px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+  .app { display: grid; grid-template-rows: 56px 1fr; height: 100vh; }
+  header { display: flex; align-items: center; gap: 12px; padding: 0 16px; background: var(--panel); border-bottom: 1px solid var(--stroke); }
+  header .logo { font-weight: 800; font-size: 17px; display: flex; gap: 8px; align-items: center; }
+  header .logo i { width: 22px; height: 22px; border-radius: 6px; background: linear-gradient(135deg,#5289ff,#8a5bff); display: inline-block; }
+  .pill { display: inline-flex; gap: 6px; align-items: center; padding: 4px 10px; border-radius: 99px; font-size: 12px; background: var(--raised); color: var(--dim); white-space: nowrap; }
+  .pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--bad); }
+  .pill.on .dot { background: var(--ok); } .pill.on { color: var(--text); }
+  .pill.warn .dot { background: var(--warn); }
+  .spacer { flex: 1; }
+  header button, header .logo { white-space: nowrap; }
+  header { overflow: hidden; }
+  @media (max-width: 1560px) { #pApp, #btnSave kbd, #ver { display: none; } header .ghost { padding: 7px 9px; } header { gap: 8px; } }
+  @media (max-width: 1280px) { #pKeys, #pAe { display: none; } }
+  .dirty { color: var(--warn); font-size: 12px; }
+  main { display: grid; grid-template-columns: 310px minmax(0,1fr) 360px; min-height: 0; }
+  aside, section { overflow: auto; min-height: 0; }
+  aside.left { background: var(--panel); border-right: 1px solid var(--stroke); padding: 14px; }
+  aside.right { background: var(--panel); border-left: 1px solid var(--stroke); padding: 14px; }
+  section.center { padding: 18px 22px; }
+  .plist { display: flex; flex-direction: column; gap: 4px; }
+  .pitem { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 10px; cursor: pointer; }
+  .pitem:hover { background: var(--raised); }
+  .pitem.sel { background: var(--raised2); }
+  .pitem .sw { width: 14px; height: 14px; border-radius: 4px; flex: none; }
+  .pitem .meta { font-size: 11px; color: var(--dim); }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .row > * { flex: 1; }
+  .row > .fit { flex: none; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .chip { background: var(--raised2); padding: 3px 4px 3px 10px; border-radius: 99px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; }
+  .chip button { padding: 0 6px; background: transparent; color: var(--dim); }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .tab { padding: 7px 14px; border-radius: 99px; background: var(--raised); cursor: pointer; user-select: none; }
+  .tab.sel { background: var(--accent); font-weight: 600; }
+  .title { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+  .title h2 { margin: 0; font-size: 22px; }
+  .title .hint { color: var(--dim); font-size: 12px; }
+  .device { background: #050506; border-radius: 26px; padding: 18px; border: 1px solid var(--stroke); box-shadow: 0 20px 60px rgba(0,0,0,.45); max-width: 980px; }
+  .grid { display: grid; gap: 10px; }
+  .tile { min-width: 0; overflow: hidden; aspect-ratio: 1.15; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    padding: 8px; text-align: center; cursor: pointer; position: relative; user-select: none; border: 2px solid transparent; transition: transform .06s; }
+  .tile:active { transform: scale(.97); }
+  .tile.empty { border: 1px dashed rgba(255,255,255,.12); color: rgba(255,255,255,.25); font-size: 22px; }
+  .tile.empty:hover { border-color: var(--accent); color: var(--accent); }
+  .tile.sel { border-color: #fff; box-shadow: 0 0 0 3px rgba(82,137,255,.45); }
+  .tile.over { outline: 2px dashed var(--accent); outline-offset: 2px; }
+  .tile.outside { opacity: .35; }
+  .tile .lbl { font-weight: 600; font-size: 13px; line-height: 1.2; }
+  .tile .sym { font-size: 10px; color: rgba(255,255,255,.7); font-family: Consolas, monospace; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tile .keys { font-size: 10px; color: rgba(255,255,255,.85); background: rgba(0,0,0,.25); padding: 1px 6px; border-radius: 6px; font-family: Consolas, monospace; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tile .badge { position: absolute; top: 6px; right: 8px; font-size: 10px; opacity: .8; }
+  .swatches { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .swatch { width: 24px; height: 24px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; }
+  .swatch.sel { border-color: #fff; }
+  .action { background: var(--raised); border-radius: 10px; padding: 8px; margin-bottom: 8px; border: 1px solid var(--stroke); }
+  .action .row { margin-top: 6px; }
+  .action .row:first-child { margin-top: 0; }
+  .rec { background: #3b2328; color: #ffb3b3; white-space: nowrap; }
+  .rec.on { background: var(--bad); color: #fff; animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: .6; } }
+  .muted { color: var(--dim); font-size: 12px; }
+  .empty-state { color: var(--dim); text-align: center; padding: 40px 10px; }
+  .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: #000; border: 1px solid var(--stroke); padding: 10px 18px; border-radius: 99px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 10; }
+  .toast.show { opacity: 1; }
+  .jogrow { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 28px; gap: 4px; margin-top: 4px; }
+  .jogrow input { padding: 5px 6px; font-size: 12px; }
+  .jogrow button { padding: 0; background: transparent; color: var(--dim); }
+  .modal { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; z-index: 20; }
+  .modal.show { display: flex; }
+  .ta { width: 100%; background: var(--raised); border: 1px solid var(--stroke); border-radius: 8px; padding: 8px; color: inherit; font: 12px Consolas, monospace; }
+  .modal .box { background: var(--panel); border: 1px solid var(--stroke); border-radius: 16px; width: 520px; max-height: 92vh; overflow: auto; padding: 20px; }
+  kbd { background: var(--raised2); border-radius: 4px; padding: 1px 6px; font-family: Consolas, monospace; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo"><i></i> USB Deck <span class="muted" id="ver"></span></div>
+    <span class="pill" id="pIpad"><span class="dot"></span><span>iPad</span></span>
+    <span class="pill" id="pKeys"><span class="dot"></span><span>Tastiera</span></span>
+    <span class="pill" id="pAe"><span class="dot"></span><span>After Effects</span></span>
+    <span class="pill" id="pAudio"><span class="dot"></span><span>Mikseri</span></span>
+    <span class="pill" id="pApp" title="Aplikacioni aktiv në PC"><span>App aktiv: –</span></span>
+    <div class="spacer"></div>
+    <span class="dirty" id="dirty"></span>
+    <button class="ghost" id="btnSendDoc" title="Dërgo PDF, foto ose video te iPad-i">📄 Dërgo te iPad</button>
+    <input type="file" id="fileSendDoc" multiple hidden>
+    <button class="ghost" id="btnSettings">⚙ Cilësimet</button>
+    <button class="ghost" id="btnExport">Eksporto</button>
+    <button class="ghost" id="btnImport">Importo</button>
+    <button class="ghost" id="btnRevert">Anulo ndryshimet</button>
+    <button class="primary" id="btnSave">Ruaj & dërgo te iPad <kbd>Ctrl+S</kbd></button>
+    <input type="file" id="fileImport" accept=".json,application/json" hidden>
+  </header>
+  <main>
+    <aside class="left" id="left"></aside>
+    <section class="center" id="center"></section>
+    <aside class="right" id="right"></aside>
+  </main>
+</div>
+
+<div class="modal" id="modal">
+  <div class="box">
+    <h2 style="margin:0 0 6px">Cilësimet</h2>
+    <label>Grid-i i parazgjedhur (rreshta × kolona)</label>
+    <div class="row"><input type="number" id="sRows" min="1" max="8"><input type="number" id="sCols" min="1" max="10"></div>
+    <label>Përsëritja: vonesa para fillimit (sekonda)</label>
+    <input type="number" id="sDelay" step="0.05" min="0.05" max="2">
+    <label>Përsëritja: shpejtësia (sekonda midis goditjeve)</label>
+    <input type="number" id="sRate" step="0.005" min="0.01" max="1">
+    <label>Shtegu i AfterFX.exe (bosh = gjetje automatike)</label>
+    <input id="sAe" placeholder="C:\Program Files\Adobe\Adobe After Effects 2025\Support Files\AfterFX.exe">
+    <div class="muted" id="sAeFound" style="margin-top:4px"></div>
+    <h3>Projektet & backup</h3>
+    <label>Dosjet ku mban projektet (.prproj / .aep) – një për rresht</label>
+    <textarea id="sProjFolders" rows="3" class="ta"></textarea>
+    <label style="display:flex;gap:8px;align-items:center;color:var(--text)"><input type="checkbox" id="sBackup"> Backup automatik sa herë ruan projektin</label>
+    <div class="row">
+      <div style="flex:3"><label>Dosja e backup-eve</label><input id="sBackupFolder"></div>
+      <div><label>Mbaj (kopje)</label><input type="number" id="sBackupKeep" min="3" max="500"></div>
+      <div><label>Çdo (min)</label><input type="number" id="sBackupGap" min="0" max="120" step="0.5"></div>
+    </div>
+    <label>Ku krijohen projektet e reja</label>
+    <input id="sProjRoot">
+    <label>Struktura e dosjeve (një për rresht, p.sh. 02_Audio/Muzika)</label>
+    <textarea id="sTemplate" rows="5" class="ta"></textarea>
+    <label>Skedarë shabllon që kopjohen te projekti i ri (opsionale, p.sh. Template.prproj)</label>
+    <textarea id="sTplFiles" rows="2" class="ta"></textarea>
+    <h3>Kohëmatësi</h3>
+    <label style="display:flex;gap:8px;align-items:center;color:var(--text)"><input type="checkbox" id="sTime"> Mat kohën e punës në çdo projekt</label>
+    <div class="row"><div><label>Ndalo matjen pas (min pa lëvizur mausin/tastierën)</label><input type="number" id="sIdle" min="1" max="60"></div>
+      <button class="fit" id="btnCsv" style="margin-top:28px">⬇ Shkarko orët (CSV)</button></div>
+    <h3>Premiere Pro (lidhja e thellë)</h3>
+    <div class="muted">Instalon panelin “USB Deck” brenda Premiere-s: timecode live, markera me shënime, eksport te Media Encoder nga iPad-i.</div>
+    <div class="row" style="margin-top:6px"><button id="btnPproInstall">Instalo panelin në Premiere</button><span class="muted" id="pproMsg"></span></div>
+    <label>Dosja e eksporteve (bosh = “Eksporte” pranë projektit)</label>
+    <input id="sPproOut" placeholder="D:\Eksporte">
+    <h3>Logot e brendeve</h3>
+    <label>Dosja kryesore e logove (brenda saj krijohet një dosje për çdo brend)</label>
+    <input id="sLogos" placeholder="%USERPROFILE%\Documents\USB Deck Logos">
+    <h3>Programet në iPad</h3>
+    <div class="muted">Programet që hapen me një prekje te vegla “Programet”. Nëse programi është i hapur, dritarja e tij sillet përpara.</div>
+    <div id="launchList" style="margin-top:8px"></div>
+    <div class="row" style="margin-top:6px">
+      <select id="launchPick" style="flex:3"></select><button class="fit" id="launchAdd">Shto</button>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <input id="launchName" placeholder="Emri (p.sh. Projektet)"><input id="launchPath" style="flex:2" placeholder="Shtegu: C:\...\program.exe ose një dosje"><button class="fit" id="launchAddManual">Shto</button>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <button id="launchRescan">↻ Rikërko programet e instaluara</button><button id="launchDefaults">Rikthe listën automatike</button>
+    </div>
+    <h3>Monitori (iPad si ekran i dytë)</h3>
+    <div class="row">
+      <div><label>Kuadro/sek (5–30)</label><input type="number" id="sFps" min="5" max="30"></div>
+      <div><label>Cilësia JPEG (40–95)</label><input type="number" id="sQual" min="40" max="95"></div>
+      <div><label>Gjerësia max (px)</label><input type="number" id="sMaxW" min="800" max="2732" step="100"></div>
+    </div>
+    <label style="display:flex;gap:8px;align-items:center;color:var(--text)"><input type="checkbox" id="sTouch"> Prekja në iPad kontrollon mausin e PC-së</label>
+    <h3>Screenshot</h3>
+    <label style="display:flex;gap:8px;align-items:center;color:var(--text)"><input type="checkbox" id="sShotAsk"> Hap dritaren “Ruaj si” për të zgjedhur vendin dhe emrin</label>
+    <label>Dosja (e parazgjedhur te “Ruaj si”, ose ku ruhen vetë nëse e fik opsionin)</label>
+    <input id="sShots">
+    <h3>Skedarët nga iPad-i</h3>
+    <label>Dosja ku ruhen foto/videot që dërgon nga iPad-i</label>
+    <input id="sTransfer" placeholder="%USERPROFILE%\Desktop\Nga iPad-i">
+    <h3>Korrigjimet (timecode)</h3>
+    <div class="muted">Ora me të cilën fillon timeline-i. Resolve zakonisht fillon në 01:00:00:00, Premiere dhe After Effects në 00:00:00:00.</div>
+    <div class="row" style="margin-top:6px">
+      <div><label>Premiere (orë)</label><input type="number" min="0" max="23" id="sTcPr"></div>
+      <div><label>Resolve (orë)</label><input type="number" min="0" max="23" id="sTcDr"></div>
+      <div><label>After Effects (orë)</label><input type="number" min="0" max="23" id="sTcAe"></div>
+    </div>
+    <h3>Njoftimi i render-it</h3>
+    <label style="display:flex;gap:8px;align-items:center;color:var(--text)"><input type="checkbox" id="sRender"> Shfaq njoftim në ekran të plotë kur mbaron render-i</label>
+    <label style="display:flex;gap:8px;align-items:center;color:var(--text)"><input type="checkbox" id="sRenderSound"> Bëj edhe një tingull në PC</label>
+    <label>Dosjet ku eksporton (një për rresht, kontrollohen edhe nën-dosjet)</label>
+    <textarea id="sFolders" rows="4" style="width:100%;background:var(--raised);border:1px solid var(--stroke);border-radius:8px;padding:8px;color:inherit;font:12px Consolas,monospace" placeholder="D:\Projekte\Klienti\Exports"></textarea>
+    <div class="row" style="margin-top:8px"><button id="btnRenderTest">Testo njoftimin në iPad</button><span class="muted" id="sRendering"></span></div>
+    <h3>Rivendosje</h3>
+    <button class="danger" id="btnDefaults">Rikthe profilet origjinale</button>
+    <div class="row" style="margin-top:18px; justify-content:flex-end">
+      <span></span><button class="fit" id="sClose">Mbyll</button><button class="primary fit" id="sApply">Apliko</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<datalist id="symbols"></datalist>
+<datalist id="recentApps"></datalist>
+
+<script>
+"use strict";
+// ------------------------------------------------------------------ data
+const SYMBOLS = ["playpause.fill","play.fill","pause.fill","stop.fill","backward.fill","forward.fill","backward.frame.fill","forward.frame.fill",
+"backward.end.fill","forward.end.fill","backward.end.alt.fill","forward.end.alt.fill","scissors","scissors.circle.fill","delete.left.fill","trash.fill",
+"arrow.uturn.backward","arrow.uturn.forward","bookmark.fill","flag.fill","i.square.fill","o.square.fill","plus.magnifyingglass","minus.magnifyingglass",
+"magnifyingglass","arrow.left.and.right","arrow.left.arrow.right","arrow.left.to.line","arrow.right.to.line","arrow.up.left.and.arrow.down.right",
+"square.and.arrow.down.fill","square.and.arrow.up.fill","paperplane.fill","cursorarrow","hand.raised.fill","pencil","pencil.tip","paintbrush.fill",
+"paintbrush.pointed.fill","eraser.fill","textformat","crop","lasso","wand.and.stars","sparkles","square.stack.3d.up.fill","square.stack","plus.square.on.square",
+"square.on.square","link","link.circle.fill","scope","timer","speedometer","waveform","waveform.path","waveform.path.ecg","speaker.wave.3.fill",
+"speaker.wave.1.fill","speaker.slash.fill","camera.fill","camera.viewfinder","photo","photo.on.rectangle","film","film.stack","rectangle.on.rectangle",
+"bolt.fill","eye.fill","eye.slash.fill","chevron.left.2","chevron.right.2","chevron.left.circle.fill","chevron.right.circle.fill","diamond.fill",
+"circle.lefthalf.filled","circle.fill","circle.dashed","rotate.right","slider.horizontal.3","gearshape.fill","folder.fill","doc.on.doc.fill",
+"doc.on.clipboard.fill","keyboard","command","option","repeat","shuffle","star.fill","heart.fill","sun.max.fill","moon.fill","power","cpu",
+"desktopcomputer","display","paintpalette.fill","square.3.layers.3d","rectangle.dashed","plus.circle.fill","minus.circle.fill","xmark.circle.fill",
+"checkmark.circle.fill","exclamationmark.triangle.fill","lock.fill","lock.open.fill","music.note","mic.fill","headphones","text.bubble.fill",
+"quote.bubble.fill","number","clock.fill","calendar","envelope.fill","globe","house.fill","person.fill","face.smiling"];
+const SWATCHES = ["#2F6FED","#4F46C8","#8448C4","#C93A8E","#D93F45","#E8651A","#B7820A","#22945F","#0E978A","#454B57","#5B5BD6","#7B4FD6","#1F7FD6","#3A4A63"];
+const STEP_TYPES = [
+  ["keys", "Shortcut"], ["text", "Shkruaj tekst"], ["wait", "Prit (sek)"], ["open", "Hap skedar / URL"], ["run", "Komandë"], ["ae", "Skript AE"], ["audio", "Zëri / Mikrofoni"], ["screenshot", "Screenshot i PC-së"]
+];
+const MODES = [["tap","Shtyp (një herë)"],["hold","Mbaj (tasti mbahet shtypur)"],["repeat","Përsërit (sa e mban)"]];
+
+let cfg = null, savedJSON = "", status = {}, sel = { p: 0, pg: 0, b: null }, recording = null, dragFrom = null;
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = (pre) => pre + "_" + Math.random().toString(36).slice(2, 10);
+const clone = (o) => JSON.parse(JSON.stringify(o));
+
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+// ------------------------------------------------------------------ api
+async function api(path, body) {
+  const r = await fetch(path, body === undefined ? {} : { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || ("HTTP " + r.status));
+  return j;
+}
+
+async function load() {
+  cfg = await api("/api/config");
+  savedJSON = JSON.stringify(cfg);
+  sel = { p: Math.min(sel.p, cfg.profiles.length - 1), pg: 0, b: null };
+  render();
+}
+
+async function save() {
+  try {
+    const r = await api("/api/config", cfg);
+    cfg = r.config; savedJSON = JSON.stringify(cfg);
+    render();
+    toast(r.pushed ? "U ruajt dhe u dërgua te iPad-i ✓" : "U ruajt ✓ (iPad-i s'është i lidhur tani)");
+  } catch (e) { toast("Gabim: " + e.message); }
+}
+
+async function pollStatus() {
+  try {
+    status = await api("/api/status");
+    $("ver").textContent = "v" + status.version;
+    setPill("pIpad", status.connected ? "on" : "", status.connected ? ("iPad · " + (status.device || "USB")) : "iPad pa lidhje");
+    setPill("pKeys", status.keyboard ? "on" : "warn", status.keyboard ? "Tastiera OK" : "Tastiera: dry-run");
+    setPill("pAe", status.ae_path ? "on" : "", status.ae_path ? "After Effects" : "AE s'u gjet");
+    setPill("pAudio", status.audio === "windows" ? "on" : (status.audio === "simulated" ? "warn" : ""), status.audio === "windows" ? "Mikseri OK" : (status.audio === "simulated" ? "Mikseri: simulim" : "Mikseri s'punon"));
+    $("pApp").querySelector("span").textContent = "App aktiv: " + (status.foreground || "–");
+    $("recentApps").innerHTML = (status.recent_apps || []).map(a => `<option value="${esc(a)}">`).join("");
+  } catch (e) {
+    setPill("pIpad", "", "Agjenti s'po përgjigjet");
+  }
+}
+function setPill(id, cls, text) { const p = $(id); p.className = "pill " + cls; p.lastElementChild.textContent = text; }
+
+// ------------------------------------------------------------------ helpers
+const prof = () => cfg.profiles[sel.p];
+const pageObj = () => prof().pages[sel.pg];
+const gridOf = (p) => p.grid || cfg.settings.grid;
+function btnObj() { if (sel.b === null) return null; return (pageObj()?.buttons || [])[sel.b] || null; }
+function markDirty() { $("dirty").textContent = JSON.stringify(cfg) !== savedJSON ? "● Ndryshime të paruajtura" : ""; }
+function summary(b) {
+  const a = (b.actions || [])[0];
+  if (!a) return "";
+  if ("keys" in a) return a.keys + ((b.actions.length > 1) ? " …" : "");
+  if ("ae" in a) return "AE: " + a.ae;
+  if ("audio" in a) return "zëri: " + a.audio;
+  if ("screenshot" in a) return "screenshot";
+  if ("text" in a) return "tekst";
+  if ("open" in a) return "hap";
+  if ("run" in a) return "komandë";
+  return "makro";
+}
+function stepType(a) { return STEP_TYPES.map(t => t[0]).find(k => k in a) || "keys"; }
+
+// ------------------------------------------------------------------ render
+function render() {
+  if (!cfg) return;
+  if (!prof()) sel.p = 0;
+  if (!pageObj()) sel.pg = 0;
+  renderLeft(); renderCenter(); renderRight(); markDirty();
+}
+
+function renderLeft() {
+  const p = prof();
+  const jog = p.jog || { modes: [], transport: {} };
+  const tr = jog.transport || {};
+  $("left").innerHTML = `
+    <h3 style="margin-top:0">Profilet</h3>
+    <div class="plist">
+      ${cfg.profiles.map((x, i) => `
+        <div class="pitem ${i === sel.p ? "sel" : ""}" data-pi="${i}">
+          <span class="sw" style="background:${esc(x.color || "#555")}"></span>
+          <div><div>${esc(x.name)}</div><div class="meta">${(x.apps || []).length ? esc(x.apps.join(", ")) : "pa app të lidhur"}</div></div>
+        </div>`).join("")}
+    </div>
+    <div class="row" style="margin-top:8px"><button id="addProfile">+ Profil</button><button id="dupProfile">Dupliko</button></div>
+
+    <h3>Profili: ${esc(p.name)}</h3>
+    <label>Emri</label><input id="pName" value="${esc(p.name)}">
+    <div class="row">
+      <div><label>Ngjyra</label><input type="color" id="pColor" value="${esc(p.color || "#5289ff")}"></div>
+      <div style="flex:3"><label>Ikona (SF Symbol)</label><input id="pSymbol" list="symbols" value="${esc(p.symbol || "")}"></div>
+    </div>
+    <label>Aplikacionet që e aktivizojnë (.exe)</label>
+    <div class="row"><input id="appInput" list="recentApps" placeholder="p.sh. afterfx.exe"><button class="fit" id="addApp">Shto</button></div>
+    <div class="chips">${(p.apps || []).map((a, i) => `<span class="chip">${esc(a)}<button data-rmapp="${i}">✕</button></span>`).join("") || '<span class="muted">Hap programin në PC dhe zgjidhe nga lista.</span>'}</div>
+    <div class="row" style="margin-top:10px">
+      <label style="margin:0;display:flex;gap:8px;align-items:center;color:var(--text)"><input type="checkbox" id="pGridOwn" ${p.grid ? "checked" : ""}> Grid i veçantë</label>
+      ${p.grid ? `<input type="number" id="pRows" min="1" max="8" value="${p.grid.rows}"><input type="number" id="pCols" min="1" max="10" value="${p.grid.cols}">` : ""}
+    </div>
+    <label style="display:flex;gap:8px;align-items:center;color:var(--text)"><input type="checkbox" id="pEase" ${p.ease ? "checked" : ""}> Paneli Easing (After Effects)</label>
+
+    <h3>Jog wheel</h3>
+    <div class="jogrow muted"><span>ID</span><span>Emri</span><span>Majtas ↺</span><span>Djathtas ↻</span><span></span></div>
+    ${(jog.modes || []).map((m, i) => `
+      <div class="jogrow">
+        <input data-jog="${i}" data-f="id" value="${esc(m.id)}">
+        <input data-jog="${i}" data-f="label" value="${esc(m.label)}">
+        <input data-jog="${i}" data-f="k0" value="${esc((m.keys || [])[0] || "")}">
+        <input data-jog="${i}" data-f="k1" value="${esc((m.keys || [])[1] || "")}">
+        <button data-rmjog="${i}" title="Fshi">✕</button>
+      </div>`).join("")}
+    <button id="addJog" style="margin-top:6px">+ Mënyrë jog</button>
+    <label>Butonat poshtë rrotës (◀◀ ■ ▶▶)</label>
+    <div class="row">
+      <input data-tr="reverse" placeholder="mbrapa" value="${esc(tr.reverse || "")}">
+      <input data-tr="stop" placeholder="stop" value="${esc(tr.stop || "")}">
+      <input data-tr="forward" placeholder="para" value="${esc(tr.forward || "")}">
+    </div>
+
+    <div class="row" style="margin-top:22px"><button class="danger" id="delProfile" ${cfg.profiles.length < 2 ? "disabled" : ""}>Fshi profilin</button></div>
+  `;
+}
+
+function renderCenter() {
+  const p = prof(), pg = pageObj(), g = gridOf(p);
+  const buttons = pg ? (pg.buttons || []) : [];
+  const total = Math.max(g.rows * g.cols, Math.ceil(buttons.length / g.cols) * g.cols);
+  let tiles = "";
+  for (let i = 0; i < total; i++) {
+    const b = buttons[i];
+    const outside = i >= g.rows * g.cols ? " outside" : "";
+    if (!b) { tiles += `<div class="tile empty${outside}" data-slot="${i}" title="Shto buton">+</div>`; continue; }
+    const badge = b.mode === "hold" ? "✋" : b.mode === "repeat" ? "⟳" : "";
+    tiles += `<div class="tile${i === sel.b ? " sel" : ""}${outside}" draggable="true" data-slot="${i}"
+      style="background:linear-gradient(180deg, ${esc(b.color || p.color || "#454b57")}, ${esc(b.color || p.color || "#454b57")}aa)">
+      ${badge ? `<span class="badge">${badge}</span>` : ""}
+      <div class="lbl">${esc(b.label || "(pa emër)")}</div>
+      ${b.symbol ? `<div class="sym">${esc(b.symbol)}</div>` : ""}
+      <div class="keys">${esc(summary(b))}</div></div>`;
+  }
+  $("center").innerHTML = `
+    <div class="title"><h2>${esc(p.name)}</h2><span class="hint">Kliko një buton për ta ndryshuar · tërhiqe për ta lëvizur · ${g.rows}×${g.cols} grid</span></div>
+    <div class="tabs">
+      ${(p.pages || []).map((x, i) => `<span class="tab ${i === sel.pg ? "sel" : ""}" data-pg="${i}" title="Dy-klik për ta riemërtuar">${esc(x.name)}</span>`).join("")}
+      <button id="addPage">+ Faqe</button>
+      ${pg ? `<button class="ghost" id="renPage">Riemërto</button><button class="ghost" id="pgLeft" title="Lëviz majtas">◀</button><button class="ghost" id="pgRight" title="Lëviz djathtas">▶</button><button class="ghost" id="delPage">Fshi faqen</button>` : ""}
+    </div>
+    ${pg ? `<div class="device"><div class="grid" style="grid-template-columns:repeat(${g.cols},minmax(0,1fr))">${tiles}</div></div>
+      ${buttons.length > g.rows * g.cols ? `<p class="muted">⚠ Disa butona janë jashtë grid-it dhe nuk shfaqen në iPad. Rrite grid-in ose lëvizi.</p>` : ""}`
+      : `<div class="empty-state">Ky profil nuk ka faqe. Kliko “+ Faqe”.</div>`}
+  `;
+}
+
+function renderRight() {
+  const b = btnObj();
+  if (!b) {
+    $("right").innerHTML = `<div class="empty-state">Zgjidh një buton në grid<br>ose kliko <b>+</b> për të krijuar një të ri.<br><br>
+      <span class="muted">Shortcut-et shkruhen si <kbd>ctrl+shift+d</kbd>, <kbd>alt+[</kbd>, <kbd>f9</kbd>, <kbd>space</kbd>, <kbd>page up</kbd>, <kbd>windows+shift+s</kbd>.</span></div>`;
+    return;
+  }
+  const p = prof();
+  const color = b.color || "";
+  $("right").innerHTML = `
+    <h3 style="margin-top:0">Butoni</h3>
+    <label>Teksti</label><input id="bLabel" value="${esc(b.label)}" maxlength="40">
+    <label>Ikona (SF Symbol) – shih emrat te <span class="muted">developer.apple.com/sf-symbols</span></label>
+    <input id="bSymbol" list="symbols" value="${esc(b.symbol || "")}" placeholder="p.sh. scissors">
+    <label>Ngjyra</label>
+    <div class="row"><input type="color" id="bColor" class="fit" value="${esc(color || p.color || "#454b57")}"><button class="ghost fit" id="bColorReset">Si profili</button><span></span></div>
+    <div class="swatches">${SWATCHES.map(c => `<span class="swatch ${c.toLowerCase() === color.toLowerCase() ? "sel" : ""}" data-sw="${c}" style="background:${c}"></span>`).join("")}</div>
+    <label>Mënyra</label>
+    <select id="bMode">${MODES.map(([v, t]) => `<option value="${v}" ${b.mode === v ? "selected" : ""}>${t}</option>`).join("")}</select>
+    ${b.mode === "hold" ? `<div class="muted" style="margin-top:4px">Mbaj: përdoret vetëm shortcut-i i parë (p.sh. <kbd>space</kbd> për Hand tool).</div>` : ""}
+
+    <h3>Veprimet ${b.actions.length > 1 ? "(makro – ekzekutohen me radhë)" : ""}</h3>
+    ${(b.actions || []).map((a, i) => actionRow(a, i, b.actions.length)).join("")}
+    <div class="row"><button id="addStep">+ Veprim</button><button id="testBtn" title="Ekzekutohet pas 3 sekondash – kalo te programi">▶ Testo (3s)</button></div>
+    <div class="muted" style="margin-top:6px">Kombinimet që i kap browser-i (Ctrl+W, Ctrl+N, Ctrl+T) shkruaji me dorë.</div>
+
+    <h3>Të tjera</h3>
+    <div class="row"><button id="dupBtn">Dupliko</button><button class="danger" id="delBtn">Fshi butonin</button></div>
+  `;
+}
+
+function actionRow(a, i, n) {
+  const t = stepType(a);
+  const val = a[t] ?? "";
+  let input;
+  if (t === "ae") {
+    const list = status.ae_scripts || [];
+    input = `<select data-step="${i}" data-f="val">${list.map(s => `<option ${s === val ? "selected" : ""}>${esc(s)}</option>`).join("")}${list.includes(val) || !val ? "" : `<option selected>${esc(val)}</option>`}</select>`;
+  } else if (t === "audio") {
+    const cmds = status.audio_commands || { mic_toggle: "Mikrofoni on/off", master_mute: "Mute (kompjuteri)", output_next: "Pajisja tjetër e zërit" };
+    input = `<select data-step="${i}" data-f="val">${Object.entries(cmds).map(([k, l]) => `<option value="${k}" ${k === val ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
+  } else if (t === "screenshot") {
+    input = `<div class="muted" style="padding:8px 2px">Fotografon gjithë ekranin, e kopjon (Ctrl+V) dhe hap “Ruaj si” në Windows.</div>`;
+  } else if (t === "wait") {
+    input = `<input type="number" step="0.05" min="0" max="10" data-step="${i}" data-f="val" value="${esc(val)}">`;
+  } else {
+    const ph = { keys: "ctrl+k", text: "Tekst për t'u shkruar", open: "C:\\Projekte  ose  https://…", run: "notepad.exe" }[t];
+    input = `<input data-step="${i}" data-f="val" value="${esc(val)}" placeholder="${ph}">`;
+  }
+  return `<div class="action">
+    <div class="row">
+      <select data-step="${i}" data-f="type">${STEP_TYPES.map(([k, l]) => `<option value="${k}" ${k === t ? "selected" : ""}>${l}</option>`).join("")}</select>
+      <button class="fit ghost" data-up="${i}" ${i === 0 ? "disabled" : ""}>↑</button>
+      <button class="fit ghost" data-down="${i}" ${i === n - 1 ? "disabled" : ""}>↓</button>
+      <button class="fit ghost" data-rmstep="${i}">✕</button>
+    </div>
+    <div class="row">${input}${t === "keys" ? `<button class="fit rec ${recording === i ? "on" : ""}" data-rec="${i}">${recording === i ? "Shtyp tastet…" : "⏺ Regjistro"}</button>` : ""}</div>
+  </div>`;
+}
+
+// ------------------------------------------------------------------ key recorder
+const CODE_MAP = { Space: "space", Enter: "enter", NumpadEnter: "enter", Backspace: "backspace", Delete: "delete", Tab: "tab", Escape: "esc",
+  Home: "home", End: "end", PageUp: "page up", PageDown: "page down", Insert: "insert",
+  ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up", ArrowDown: "down",
+  Minus: "-", Equal: "=", BracketLeft: "[", BracketRight: "]", Backslash: "\\", Semicolon: ";", Quote: "'", Backquote: "`",
+  Comma: ",", Period: ".", Slash: "/", NumpadAdd: "+", NumpadSubtract: "-", NumpadMultiply: "*", NumpadDivide: "/", NumpadDecimal: "." };
+function keyName(e) {
+  if (CODE_MAP[e.code]) return CODE_MAP[e.code];
+  let m;
+  if ((m = /^Key([A-Z])$/.exec(e.code))) return m[1].toLowerCase();
+  if ((m = /^Digit(\d)$/.exec(e.code))) return m[1];
+  if ((m = /^Numpad(\d)$/.exec(e.code))) return m[1];
+  if ((m = /^F(\d{1,2})$/.exec(e.code))) return "f" + m[1];
+  return (e.key || "").toLowerCase();
+}
+document.addEventListener("keydown", (e) => {
+  if (recording !== null) {
+    e.preventDefault(); e.stopPropagation();
+    if (["Control","Shift","Alt","Meta","AltGraph"].includes(e.key)) return;
+    const parts = [];
+    if (e.ctrlKey) parts.push("ctrl");
+    if (e.shiftKey) parts.push("shift");
+    if (e.altKey) parts.push("alt");
+    if (e.metaKey) parts.push("windows");
+    parts.push(keyName(e));
+    const b = btnObj();
+    if (b && b.actions[recording]) b.actions[recording] = { keys: parts.join("+") };
+    recording = null; renderRight(); renderCenter(); markDirty();
+    return;
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); save(); }
+}, true);
+
+// ------------------------------------------------------------------ events
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-pi],[data-pg],[data-slot],[data-rmapp],[data-rmjog],[data-sw],[data-up],[data-down],[data-rmstep],[data-rec],button");
+  if (!t) return;
+  const d = t.dataset;
+  const p = cfg && prof();
+
+  if (d.pi !== undefined) { sel = { p: +d.pi, pg: 0, b: null }; recording = null; return render(); }
+  if (d.pg !== undefined && !t.matches("button")) { sel.pg = +d.pg; sel.b = null; recording = null; return render(); }
+  if (d.slot !== undefined) {
+    const i = +d.slot, pg = pageObj();
+    if (!pg.buttons[i]) {
+      while (pg.buttons.length <= i) pg.buttons.push(null);
+      pg.buttons[i] = { id: uid("b"), label: "Buton i ri", symbol: "", color: "", mode: "tap", actions: [{ keys: "" }] };
+      sel.b = i; recording = 0;
+    } else { sel.b = i; recording = null; }
+    renderCenter(); renderRight(); markDirty();
+    setTimeout(() => { const l = $("bLabel"); if (l && recording === null) l.focus(); }, 0);
+    return;
+  }
+  if (d.rmapp !== undefined) { p.apps.splice(+d.rmapp, 1); return render(); }
+  if (d.rmjog !== undefined) { p.jog.modes.splice(+d.rmjog, 1); return render(); }
+  if (d.sw !== undefined) { btnObj().color = d.sw; renderRight(); renderCenter(); return markDirty(); }
+  if (d.up !== undefined) { const a = btnObj().actions, i = +d.up; [a[i - 1], a[i]] = [a[i], a[i - 1]]; return refreshBtn(); }
+  if (d.down !== undefined) { const a = btnObj().actions, i = +d.down; [a[i + 1], a[i]] = [a[i], a[i + 1]]; return refreshBtn(); }
+  if (d.rmstep !== undefined) { btnObj().actions.splice(+d.rmstep, 1); return refreshBtn(); }
+  if (d.rec !== undefined) { recording = recording === +d.rec ? null : +d.rec; return renderRight(); }
+
+  switch (t.id) {
+    case "btnSave": return save();
+    case "btnRevert": if (confirm("Të anulohen të gjitha ndryshimet e paruajtura?")) load(); return;
+    case "btnExport": return exportJSON();
+    case "btnImport": return $("fileImport").click();
+    case "btnSettings": return openSettings();
+    case "sClose": return $("modal").classList.remove("show");
+    case "sApply": return applySettings();
+    case "btnDefaults": return resetDefaults();
+    case "btnPproInstall":
+      api("/api/ppro_install", {}).then(r => { $("pproMsg").textContent = "✓ U instalua – rinis Premiere-n, pastaj Window › Extensions › USB Deck"; })
+        .catch(e => { $("pproMsg").textContent = e.message; });
+      return;
+    case "btnCsv": window.location.href = "/api/timelog.csv"; return;
+    case "btnSendDoc": return $("fileSendDoc").click();
+    case "btnRenderTest": api("/api/render_test", {}).then(r => toast(r.pushed ? "Shiko iPad-in ✓" : "iPad-i s'është i lidhur")).catch(e => toast(e.message)); return;
+    case "addProfile": {
+      cfg.profiles.push({ id: uid("p"), name: "Profil i ri", color: "#2F6FED", symbol: "square.grid.2x2", apps: [], pages: [{ name: "Faqja 1", buttons: [] }],
+        jog: { modes: [{ id: "frame", label: "Kuadër", keys: ["left", "right"] }], transport: {} } });
+      sel = { p: cfg.profiles.length - 1, pg: 0, b: null }; return render();
+    }
+    case "dupProfile": {
+      const c = clone(p); c.id = uid("p"); c.name = p.name + " (kopje)"; c.apps = [];
+      c.pages.forEach(pg => pg.buttons.forEach(b => { if (b) b.id = uid("b"); }));
+      cfg.profiles.splice(sel.p + 1, 0, c); sel = { p: sel.p + 1, pg: 0, b: null }; return render();
+    }
+    case "delProfile": if (confirm(`Të fshihet profili “${p.name}”?`)) { cfg.profiles.splice(sel.p, 1); sel = { p: 0, pg: 0, b: null }; render(); } return;
+    case "addApp": return addApp();
+    case "addJog": { p.jog = p.jog || { modes: [], transport: {} }; p.jog.modes.push({ id: "mode" + (p.jog.modes.length + 1), label: "Mënyrë", keys: ["left", "right"] }); return render(); }
+    case "addPage": { p.pages.push({ name: "Faqja " + (p.pages.length + 1), buttons: [] }); sel.pg = p.pages.length - 1; sel.b = null; return render(); }
+    case "renPage": return renamePage();
+    case "delPage": if (confirm(`Të fshihet faqja “${pageObj().name}”?`)) { p.pages.splice(sel.pg, 1); sel.pg = 0; sel.b = null; render(); } return;
+    case "pgLeft": if (sel.pg > 0) { const a = p.pages; [a[sel.pg - 1], a[sel.pg]] = [a[sel.pg], a[sel.pg - 1]]; sel.pg--; render(); } return;
+    case "pgRight": if (sel.pg < p.pages.length - 1) { const a = p.pages; [a[sel.pg + 1], a[sel.pg]] = [a[sel.pg], a[sel.pg + 1]]; sel.pg++; render(); } return;
+    case "addStep": btnObj().actions.push({ keys: "" }); recording = btnObj().actions.length - 1; return refreshBtn();
+    case "testBtn": return testButton();
+    case "dupBtn": return duplicateButton();
+    case "delBtn": { pageObj().buttons[sel.b] = null; sel.b = null; recording = null; renderCenter(); renderRight(); return markDirty(); }
+    case "bColorReset": btnObj().color = ""; renderRight(); renderCenter(); return markDirty();
+  }
+});
+
+document.addEventListener("dblclick", (e) => { if (e.target.closest("[data-pg]")) renamePage(); });
+
+document.addEventListener("input", (e) => {
+  const t = e.target, p = cfg && prof(), b = btnObj();
+  switch (t.id) {
+    case "pName": p.name = t.value; renderCenterTitle(); return markDirty();
+    case "pColor": p.color = t.value; renderCenter(); return markDirty();
+    case "pSymbol": p.symbol = t.value.trim(); return markDirty();
+    case "pRows": p.grid.rows = clamp(+t.value, 1, 8); renderCenter(); return markDirty();
+    case "pCols": p.grid.cols = clamp(+t.value, 1, 10); renderCenter(); return markDirty();
+    case "bLabel": b.label = t.value; renderCenter(); return markDirty();
+    case "bSymbol": b.symbol = t.value.trim(); renderCenter(); return markDirty();
+    case "bColor": b.color = t.value; renderCenter(); return markDirty();
+  }
+  if (t.dataset.jog !== undefined) {
+    const m = p.jog.modes[+t.dataset.jog], f = t.dataset.f;
+    if (f === "k0" || f === "k1") { m.keys = m.keys || ["", ""]; m.keys[f === "k0" ? 0 : 1] = t.value.trim(); } else m[f] = t.value.trim();
+    return markDirty();
+  }
+  if (t.dataset.tr !== undefined) {
+    p.jog = p.jog || { modes: [], transport: {} }; p.jog.transport = p.jog.transport || {};
+    if (t.value.trim()) p.jog.transport[t.dataset.tr] = t.value.trim(); else delete p.jog.transport[t.dataset.tr];
+    return markDirty();
+  }
+  if (t.dataset.step !== undefined && t.dataset.f === "val") {
+    const i = +t.dataset.step, a = b.actions[i], k = stepType(a);
+    a[k] = k === "wait" ? (parseFloat(t.value) || 0) : t.value;
+    if (i === 0) renderCenter();
+    return markDirty();
+  }
+});
+
+document.addEventListener("change", (e) => {
+  const t = e.target, p = cfg && prof(), b = btnObj();
+  if (t.id === "pGridOwn") { p.grid = t.checked ? clone(cfg.settings.grid) : undefined; if (!t.checked) delete p.grid; return render(); }
+  if (t.id === "pEase") { p.ease = t.checked; return markDirty(); }
+  if (t.id === "bMode") { b.mode = t.value; return refreshBtn(); }
+  if (t.id === "fileImport") return importJSON(t.files[0]);
+  if (t.id === "fileSendDoc") return sendDocs(t.files);
+  if (t.id === "appInput" && t.value) return addApp();
+  if (t.dataset.step !== undefined && t.dataset.f === "type") {
+    const i = +t.dataset.step, k = t.value;
+    b.actions[i] = { [k]: k === "wait" ? 0.2 : (k === "ae" ? ((status.ae_scripts || [])[0] || "") : (k === "audio" ? "mic_toggle" : (k === "screenshot" ? true : ""))) };
+    return refreshBtn();
+  }
+  if (t.dataset.step !== undefined && t.dataset.f === "val" && t.tagName === "SELECT") {
+    const a = b.actions[+t.dataset.step]; a[stepType(a)] = t.value; renderCenter(); return markDirty();
+  }
+});
+
+// drag & drop to reorder buttons
+document.addEventListener("dragstart", (e) => { const t = e.target.closest("[data-slot]"); if (t) { dragFrom = +t.dataset.slot; e.dataTransfer.effectAllowed = "move"; } });
+document.addEventListener("dragover", (e) => { const t = e.target.closest("[data-slot]"); if (t && dragFrom !== null) { e.preventDefault(); document.querySelectorAll(".over").forEach(x => x.classList.remove("over")); t.classList.add("over"); } });
+document.addEventListener("drop", (e) => {
+  const t = e.target.closest("[data-slot]"); if (!t || dragFrom === null) return;
+  e.preventDefault();
+  const to = +t.dataset.slot, list = pageObj().buttons;
+  while (list.length <= Math.max(to, dragFrom)) list.push(null);
+  [list[to], list[dragFrom]] = [list[dragFrom], list[to]];
+  if (sel.b === dragFrom) sel.b = to; else if (sel.b === to) sel.b = dragFrom;
+  dragFrom = null; renderCenter(); renderRight(); markDirty();
+});
+document.addEventListener("dragend", () => { dragFrom = null; document.querySelectorAll(".over").forEach(x => x.classList.remove("over")); });
+
+window.addEventListener("beforeunload", (e) => { if (cfg && JSON.stringify(cfg) !== savedJSON) { e.preventDefault(); e.returnValue = ""; } });
+
+// ------------------------------------------------------------------ actions
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v || a)); }
+function refreshBtn() { renderRight(); renderCenter(); markDirty(); }
+function renderCenterTitle() { const h = document.querySelector(".title h2"); if (h) h.textContent = prof().name; }
+
+function addApp() {
+  const inp = $("appInput"); let v = (inp.value || "").trim().toLowerCase();
+  if (!v) return;
+  if (!v.endsWith(".exe")) v += ".exe";
+  const p = prof(); p.apps = p.apps || [];
+  if (!p.apps.includes(v)) p.apps.push(v);
+  render();
+}
+
+function renamePage() {
+  const pg = pageObj(); if (!pg) return;
+  const n = prompt("Emri i faqes:", pg.name);
+  if (n && n.trim()) { pg.name = n.trim(); render(); }
+}
+
+function duplicateButton() {
+  const pg = pageObj(), b = btnObj(); if (!b) return;
+  const c = clone(b); c.id = uid("b"); c.label += " (2)";
+  let i = pg.buttons.findIndex((x, k) => k > sel.b && !x);
+  if (i < 0) i = pg.buttons.length;
+  pg.buttons[i] = c; sel.b = i; refreshBtn();
+}
+
+async function testButton() {
+  const b = btnObj(); if (!b) return;
+  try { await api("/api/test", { actions: b.actions, delay: 3 }); toast("Kalo te programi – ekzekutohet pas 3 sekondash…"); }
+  catch (e) { toast("Gabim: " + e.message); }
+}
+
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(cfg, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "usb-deck-profiles.json"; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+async function importJSON(file) {
+  if (!file) return;
+  try {
+    const data = JSON.parse(await file.text());
+    if (!Array.isArray(data.profiles)) throw new Error("Skedari nuk ka 'profiles'.");
+    if (!confirm("Të zëvendësohen profilet aktuale me ato të skedarit? (Ruaj pastaj për t'i dërguar te iPad-i)")) return;
+    cfg = data; sel = { p: 0, pg: 0, b: null }; render(); toast("U importua – kliko Ruaj");
+  } catch (e) { toast("Importi dështoi: " + e.message); }
+  $("fileImport").value = "";
+}
+
+async function sendDocs(files) {
+  for (const f of files) {
+    try {
+      const r = await fetch("/api/send_upload", { method: "POST", headers: { "X-Filename": encodeURIComponent(f.name) }, body: f });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || r.status);
+      toast("Po dërgohet te iPad-i: " + f.name);
+    } catch (e) { toast("Dështoi: " + e.message); }
+  }
+  $("fileSendDoc").value = "";
+}
+
+let launchDraft = null, launchTouched = false, scannedApps = [];
+function renderLaunchers() {
+  const box = $("launchList");
+  if (!launchDraft || !launchDraft.length) { box.innerHTML = '<div class="muted">Lista është bosh.</div>'; return; }
+  box.innerHTML = launchDraft.map((it, i) => `<div class="row" style="margin-top:4px">
+      <input data-lname="${i}" value="${esc(it.name)}"><span class="muted" style="flex:2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(it.path)}">${esc(it.path)}</span>
+      <button class="fit ghost" data-lup="${i}" ${i === 0 ? "disabled" : ""}>↑</button><button class="fit ghost" data-lrm="${i}">✕</button></div>`).join("");
+}
+async function loadApps() {
+  try {
+    const r = await api("/api/apps");
+    scannedApps = r.scanned || [];
+    $("launchPick").innerHTML = (r.ready ? "" : '<option value="">(duke kërkuar programet…)</option>') +
+      scannedApps.map((a, i) => `<option value="${i}">${esc(a.name)}</option>`).join("");
+    if (launchDraft === null) { launchDraft = clone(r.launchers || []); }
+    renderLaunchers();
+  } catch (e) { toast(e.message); }
+}
+document.addEventListener("click", (e) => {
+  const t = e.target;
+  if (t.dataset && t.dataset.lrm !== undefined) { launchDraft.splice(+t.dataset.lrm, 1); launchTouched = true; renderLaunchers(); }
+  if (t.dataset && t.dataset.lup !== undefined) { const i = +t.dataset.lup; [launchDraft[i - 1], launchDraft[i]] = [launchDraft[i], launchDraft[i - 1]]; launchTouched = true; renderLaunchers(); }
+  if (t.id === "launchAdd") { const a = scannedApps[+$("launchPick").value]; if (a) { launchDraft.push({ name: a.name, path: a.path, exe: a.exe }); launchTouched = true; renderLaunchers(); } }
+  if (t.id === "launchAddManual") {
+    const path = $("launchPath").value.trim(); if (!path) return;
+    const exe = /\.exe$/i.test(path) ? path.split(/[\\/]/).pop().toLowerCase() : "";
+    launchDraft.push({ name: $("launchName").value.trim() || path.split(/[\\/]/).pop(), path, exe });
+    $("launchName").value = ""; $("launchPath").value = ""; launchTouched = true; renderLaunchers();
+  }
+  if (t.id === "launchRescan") { api("/api/apps_rescan", {}).then(() => { toast("Po kërkoj programet… (rreth 30 sek)"); setTimeout(loadApps, 20000); }); }
+  if (t.id === "launchDefaults") { delete cfg.settings.launchers; launchDraft = null; launchTouched = false; loadApps(); toast("Lista automatike – kliko Apliko + Ruaj"); }
+});
+document.addEventListener("input", (e) => {
+  const t = e.target;
+  if (t.dataset && t.dataset.lname !== undefined) { launchDraft[+t.dataset.lname].name = t.value; launchTouched = true; }
+});
+
+function openSettings() {
+  const s = cfg.settings;
+  $("sRows").value = s.grid.rows; $("sCols").value = s.grid.cols;
+  $("sDelay").value = s.repeat_delay; $("sRate").value = s.repeat_rate;
+  $("sAe").value = s.after_effects_path || "";
+  $("sAeFound").textContent = status.ae_path ? ("U gjet: " + status.ae_path) : "After Effects nuk u gjet automatikisht.";
+  $("sTransfer").value = s.transfer_folder || "";
+  $("sShots").value = s.screenshot_folder || "";
+  $("sPproOut").value = s.ppro_export_folder || "";
+  $("sLogos").value = s.logos_folder || "";
+  $("sFps").value = s.screen_fps ?? 20; $("sQual").value = s.screen_quality ?? 70; $("sMaxW").value = s.screen_max_width ?? 1600;
+  $("sTouch").checked = s.screen_touch !== false;
+  launchDraft = Array.isArray(s.launchers) ? clone(s.launchers) : null; launchTouched = false;
+  loadApps();
+  $("sShotAsk").checked = s.screenshot_ask !== false;
+  $("sProjFolders").value = (s.project_folders || []).join("\n");
+  $("sBackup").checked = s.backup_enabled !== false;
+  $("sBackupFolder").value = s.backup_folder || "";
+  $("sBackupKeep").value = s.backup_keep ?? 30;
+  $("sBackupGap").value = s.backup_interval_minutes ?? 2;
+  $("sProjRoot").value = s.projects_root || "";
+  $("sTemplate").value = (s.project_template || []).join("\n");
+  $("sTplFiles").value = (s.project_template_files || []).join("\n");
+  $("sTime").checked = s.time_tracking !== false;
+  $("sIdle").value = s.idle_minutes ?? 5;
+  const tc = s.timecode_start_hours || {};
+  $("sTcPr").value = tc["adobe premiere pro.exe"] ?? 0;
+  $("sTcDr").value = tc["resolve.exe"] ?? 1;
+  $("sTcAe").value = tc["afterfx.exe"] ?? 0;
+  $("sRender").checked = s.render_notify !== false;
+  $("sRenderSound").checked = s.render_sound !== false;
+  $("sFolders").value = (s.render_folders || []).join("\n");
+  $("sRendering").textContent = (status.rendering || []).length ? ("Duke renderuar: " + status.rendering.join(", ")) : "";
+  $("modal").classList.add("show");
+}
+function applySettings() {
+  const s = cfg.settings;
+  s.grid = { rows: clamp(+$("sRows").value, 1, 8), cols: clamp(+$("sCols").value, 1, 10) };
+  s.repeat_delay = parseFloat($("sDelay").value) || 0.35;
+  s.repeat_rate = parseFloat($("sRate").value) || 0.045;
+  s.after_effects_path = $("sAe").value.trim();
+  s.transfer_folder = $("sTransfer").value.trim();
+  s.screenshot_folder = $("sShots").value.trim();
+  s.ppro_export_folder = $("sPproOut").value.trim();
+  s.logos_folder = $("sLogos").value.trim();
+  s.screen_fps = clamp(+$("sFps").value, 5, 30); s.screen_quality = clamp(+$("sQual").value, 40, 95);
+  s.screen_max_width = clamp(+$("sMaxW").value, 800, 2732); s.screen_touch = $("sTouch").checked;
+  if (launchTouched && launchDraft) s.launchers = clone(launchDraft);
+  s.screenshot_ask = $("sShotAsk").checked;
+  const lines = (id) => $(id).value.split("\n").map(x => x.trim()).filter(Boolean);
+  s.project_folders = lines("sProjFolders");
+  s.backup_enabled = $("sBackup").checked;
+  s.backup_folder = $("sBackupFolder").value.trim();
+  s.backup_keep = Math.max(3, +$("sBackupKeep").value || 30);
+  s.backup_interval_minutes = Math.max(0, +$("sBackupGap").value || 0);
+  s.projects_root = $("sProjRoot").value.trim();
+  s.project_template = lines("sTemplate");
+  s.project_template_files = lines("sTplFiles");
+  s.time_tracking = $("sTime").checked;
+  s.idle_minutes = Math.max(1, +$("sIdle").value || 5);
+  s.timecode_start_hours = { "adobe premiere pro.exe": +$("sTcPr").value || 0, "resolve.exe": +$("sTcDr").value || 0, "afterfx.exe": +$("sTcAe").value || 0 };
+  s.render_notify = $("sRender").checked;
+  s.render_sound = $("sRenderSound").checked;
+  s.render_folders = $("sFolders").value.split("\n").map(x => x.trim()).filter(Boolean);
+  $("modal").classList.remove("show"); render(); toast("Kliko Ruaj për t'i aplikuar");
+}
+async function resetDefaults() {
+  if (!confirm("Të rikthehen profilet origjinale? Profilet aktuale ruhen te dosja 'backups'.")) return;
+  cfg = await api("/api/defaults"); sel = { p: 0, pg: 0, b: null };
+  $("modal").classList.remove("show"); render(); toast("U rikthyen – kliko Ruaj");
+}
+
+// ------------------------------------------------------------------ start
+$("symbols").innerHTML = SYMBOLS.map(s => `<option value="${s}">`).join("");
+pollStatus().then(load).catch(e => { document.body.innerHTML = `<div class="empty-state">Nuk lidhem dot me agjentin: ${esc(e.message)}</div>`; });
+setInterval(pollStatus, 1500);
+</script>
+</body>
+</html>

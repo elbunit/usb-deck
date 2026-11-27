@@ -1,0 +1,258 @@
+[
+  {
+    "id": "e01",
+    "category": "Loop",
+    "name": "Loop Cycle",
+    "description": "Përsërit keyframe-t pafundësisht.",
+    "code": "loopOut(\"cycle\")",
+    "needs_keys": true
+  },
+  {
+    "id": "e02",
+    "category": "Loop",
+    "name": "Loop Ping-Pong",
+    "description": "Shko-eja mbrapa-para mes keyframe-ve.",
+    "code": "loopOut(\"pingpong\")",
+    "needs_keys": true
+  },
+  {
+    "id": "e03",
+    "category": "Loop",
+    "name": "Loop Offset",
+    "description": "Përsërit duke vazhduar nga vlera e fundit (p.sh. lëvizje që vazhdon).",
+    "code": "loopOut(\"offset\")",
+    "needs_keys": true
+  },
+  {
+    "id": "e04",
+    "category": "Loop",
+    "name": "Loop para + pas",
+    "description": "Përsërit edhe para keyframe-it të parë.",
+    "code": "loopIn(\"cycle\") + loopOut(\"cycle\") - value",
+    "needs_keys": true
+  },
+  {
+    "id": "e05",
+    "category": "Lëvizje",
+    "name": "Wiggle",
+    "description": "Dridhje e rastësishme (frekuenca, amplituda).",
+    "code": "freq = 2;\namp = 25;\nwiggle(freq, amp)",
+    "needs_keys": false
+  },
+  {
+    "id": "e06",
+    "category": "Lëvizje",
+    "name": "Wiggle vetëm X",
+    "description": "Dridhje vetëm horizontale (Position).",
+    "code": "w = wiggle(2, 30);\n[w[0], value[1]]",
+    "needs_keys": false
+  },
+  {
+    "id": "e07",
+    "category": "Lëvizje",
+    "name": "Wiggle stop-motion",
+    "description": "Wiggle me ndjesi animacioni të vjetër.",
+    "code": "posterizeTime(8);\nwiggle(4, 20)",
+    "needs_keys": false
+  },
+  {
+    "id": "e08",
+    "category": "Lëvizje",
+    "name": "Stop-motion 12fps",
+    "description": "Çdo animacion duket si 12 kuadër/sek.",
+    "code": "posterizeTime(12);\nvalue",
+    "needs_keys": false
+  },
+  {
+    "id": "e09",
+    "category": "Lëvizje",
+    "name": "Smooth",
+    "description": "Zbut lëvizjet me dridhje.",
+    "code": "smooth(0.2, 5)",
+    "needs_keys": false
+  },
+  {
+    "id": "e10",
+    "category": "Lëvizje",
+    "name": "Ndjek me vonesë",
+    "description": "Ndjek layer-in sipër me vonesë (vendose te Position).",
+    "code": "delay = 0.1;\nthisComp.layer(index - 1).transform.position.valueAtTime(time - delay)",
+    "needs_keys": false
+  },
+  {
+    "id": "e11",
+    "category": "Lëvizje",
+    "name": "Stagger sipas index",
+    "description": "Çdo layer vonohet pak më shumë (dupliko layer-in).",
+    "code": "delay = 0.05;\nvalueAtTime(time - (index - 1) * delay)",
+    "needs_keys": true
+  },
+  {
+    "id": "e12",
+    "category": "Lëvizje",
+    "name": "Pozicion i rastësishëm",
+    "description": "Pozicion i rastësishëm, i ndryshëm për çdo layer.",
+    "code": "seedRandom(index, true);\nrandom([0, 0], [thisComp.width, thisComp.height])",
+    "needs_keys": false
+  },
+  {
+    "id": "e13",
+    "category": "Kërcim",
+    "name": "Inertial Bounce",
+    "description": "Kërcim elastik pas çdo keyframe-i.",
+    "code": "amp = .06;\nfreq = 2.5;\ndecay = 6;\nn = 0;\nif (numKeys > 0) {\n  n = nearestKey(time).index;\n  if (key(n).time > time) { n--; }\n}\nif (n == 0) { t = 0; } else { t = time - key(n).time; }\nif (n > 0 && t < 1) {\n  v = velocityAtTime(key(n).time - thisComp.frameDuration / 10);\n  value + v * amp * Math.sin(freq * t * 2 * Math.PI) / Math.exp(decay * t);\n} else {\n  value;\n}",
+    "needs_keys": true
+  },
+  {
+    "id": "e14",
+    "category": "Kërcim",
+    "name": "Squash & Stretch",
+    "description": "Shtypje/zgjatje elastike në fillim të layer-it (Scale).",
+    "code": "freq = 2;\namp = 8;\ndecay = 4;\nt = time - inPoint;\ns = amp * Math.sin(freq * t * 2 * Math.PI) / Math.exp(decay * t);\nvalue + [s, -s]",
+    "needs_keys": false
+  },
+  {
+    "id": "e15",
+    "category": "Kërcim",
+    "name": "Pop-in",
+    "description": "Shfaqet nga 0 me kërcim të vogël (Scale).",
+    "code": "t = time - inPoint;\nd = 0.35;\ns = t < d ? easeOut(t, 0, d, 0, 110) : easeOut(t, d, d + 0.15, 110, 100);\n[s, s]",
+    "needs_keys": false
+  },
+  {
+    "id": "e16",
+    "category": "Kërcim",
+    "name": "Lëkundje (lavjerrës)",
+    "description": "Lëkundje që shuhet (Rotation).",
+    "code": "amp = 25;\nfreq = 1;\ndecay = 0.7;\namp * Math.sin(time * freq * Math.PI * 2) / Math.exp(decay * time)",
+    "needs_keys": false
+  },
+  {
+    "id": "e17",
+    "category": "Rrotullim",
+    "name": "Rrotullim i vazhdueshëm",
+    "description": "Rrotullohet pa ndalur (Rotation). Ndrysho 360 për shpejtësinë.",
+    "code": "time * 360",
+    "needs_keys": false
+  },
+  {
+    "id": "e18",
+    "category": "Rrotullim",
+    "name": "Shiko drejt layer-it",
+    "description": "Rrotullohet drejt layer-it 1 (Rotation). Ndrysho layer(1).",
+    "code": "target = thisComp.layer(1);\nd = target.toComp(target.anchorPoint) - toComp(anchorPoint);\nradiansToDegrees(Math.atan2(d[1], d[0]))",
+    "needs_keys": false
+  },
+  {
+    "id": "e19",
+    "category": "Shkallë",
+    "name": "Pulsim",
+    "description": "Zmadhohet-zvogëlohet butë (Scale).",
+    "code": "amp = 5;\nfreq = 1;\nv = Math.sin(time * freq * Math.PI * 2) * amp;\nvalue + [v, v]",
+    "needs_keys": false
+  },
+  {
+    "id": "e20",
+    "category": "Shkallë",
+    "name": "Stroke konstante",
+    "description": "Trashësia e vijës s'ndryshon kur zmadhohet (Stroke Width).",
+    "code": "value / length(toComp([0, 0]), toComp([0.7071, 0.7071])) || 0.001",
+    "needs_keys": false
+  },
+  {
+    "id": "e21",
+    "category": "Opacitet",
+    "name": "Fade in/out automatik",
+    "description": "Shfaqet dhe zhduket butë në fillim/fund (Opacity).",
+    "code": "fade = 0.5;\nMath.min(linear(time, inPoint, inPoint + fade, 0, 100), linear(time, outPoint - fade, outPoint, 100, 0))",
+    "needs_keys": false
+  },
+  {
+    "id": "e22",
+    "category": "Opacitet",
+    "name": "Pulsim drite (blink)",
+    "description": "Ndizet-fiket (Opacity).",
+    "code": "freq = 2;\nMath.sin(time * freq * Math.PI * 2) > 0 ? 100 : 0",
+    "needs_keys": false
+  },
+  {
+    "id": "e23",
+    "category": "Tekst",
+    "name": "Typewriter",
+    "description": "Shkronjat shfaqen një nga një (Source Text).",
+    "code": "speed = 15;\nn = Math.floor((time - inPoint) * speed);\nvalue.substr(0, Math.max(0, n))",
+    "needs_keys": false
+  },
+  {
+    "id": "e24",
+    "category": "Tekst",
+    "name": "Counter 0 → 100",
+    "description": "Numër që rritet (Source Text).",
+    "code": "start = 0;\nend = 100;\ndur = 2;\nMath.round(linear(time, inPoint, inPoint + dur, start, end))",
+    "needs_keys": false
+  },
+  {
+    "id": "e25",
+    "category": "Tekst",
+    "name": "Counter me pika (1.000.000)",
+    "description": "Numër i madh me ndarës mijëshesh (Source Text).",
+    "code": "end = 1000000;\ndur = 2;\nn = Math.round(easeOut(time, inPoint, inPoint + dur, 0, end));\nn.toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, \".\")",
+    "needs_keys": false
+  },
+  {
+    "id": "e26",
+    "category": "Tekst",
+    "name": "Orë / Timer 0:00",
+    "description": "Kohëmatës minuta:sekonda (Source Text).",
+    "code": "t = Math.floor(time - inPoint);\nm = Math.floor(t / 60);\ns = t % 60;\nm + \":\" + (s < 10 ? \"0\" : \"\") + s",
+    "needs_keys": false
+  },
+  {
+    "id": "e27",
+    "category": "Tekst",
+    "name": "Data e sotme",
+    "description": "Shfaq datën (Source Text).",
+    "code": "d = new Date();\nd.getDate() + \".\" + (d.getMonth() + 1) + \".\" + d.getFullYear()",
+    "needs_keys": false
+  },
+  {
+    "id": "e28",
+    "category": "Anchor",
+    "name": "Anchor në qendër (dinamik)",
+    "description": "Anchor point gjithmonë në qendër, edhe kur ndryshon teksti (Anchor Point).",
+    "code": "r = sourceRectAtTime(time, false);\n[r.left + r.width / 2, r.top + r.height / 2]",
+    "needs_keys": false
+  },
+  {
+    "id": "e29",
+    "category": "Anchor",
+    "name": "Anchor poshtë në qendër",
+    "description": "Anchor në fund-qendër (Anchor Point).",
+    "code": "r = sourceRectAtTime(time, false);\n[r.left + r.width / 2, r.top + r.height]",
+    "needs_keys": false
+  },
+  {
+    "id": "e30",
+    "category": "Anchor",
+    "name": "Sfond që ndjek tekstin",
+    "description": "Madhësia e drejtkëndëshit ndjek layer-in e tekstit 'Text' (Rectangle Size).",
+    "code": "pad = [40, 20];\nt = thisComp.layer(\"Text\");\nr = t.sourceRectAtTime(time, false);\n[r.width, r.height] + pad * 2",
+    "needs_keys": false
+  },
+  {
+    "id": "e31",
+    "category": "Kontroll",
+    "name": "Lidh me Slider",
+    "description": "Lidh me 'Slider Control' të këtij layer-i.",
+    "code": "effect(\"Slider Control\")(\"Slider\")",
+    "needs_keys": false
+  },
+  {
+    "id": "e32",
+    "category": "Kontroll",
+    "name": "Hiq expression",
+    "description": "Zëvendëson me vlerën e thjeshtë.",
+    "code": "value",
+    "needs_keys": false
+  }
+]

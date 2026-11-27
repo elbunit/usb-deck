@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+  body { margin: 0; padding: 10px; background: #232323; color: #ccc; font: 12px "Segoe UI", sans-serif; }
+  .row { display: flex; align-items: center; gap: 8px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #f25454; }
+  .dot.on { background: #33cc73; }
+  small { color: #888; display: block; margin-top: 4px; }
+</style></head>
+<body>
+<div class="row"><span class="dot" id="dot"></span><b>USB Deck</b><span id="txt">duke u lidhur…</span></div>
+<small>Lëre këtë panel të hapur (mund ta vendosësh të vogël në një cep).</small>
+<script>
+  // Bridge: Premiere (ExtendScript) <-> USB Deck agent (http://127.0.0.1:8790) <-> iPad.
+  var AGENT = "http://127.0.0.1:8790";
+  var cep = window.__adobe_cep__;
+  var tick = 0, lastOk = 0, busy = false;
+
+  function evalJSX(code) {
+    return new Promise(function (resolve) {
+      if (!cep) { resolve(null); return; }
+      cep.evalScript(code, function (res) { resolve(res); });
+    });
+  }
+  function q(s) { return JSON.stringify(String(s)); }
+
+  async function post(path, data) {
+    // text/plain = "simple" request, no CORS preflight from the panel's file:// page.
+    return fetch(AGENT + path, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify(data) });
+  }
+
+  async function runCommand(c) {
+    var r = null;
+    if (c.cmd === "goto") r = await evalJSX("usbdeck_goto(" + Number(c.seconds) + ")");
+    else if (c.cmd === "add_marker") r = await evalJSX("usbdeck_add_marker(" + q(c.name || "") + "," + q(c.comment || "") + "," + (Number(c.color) || 0) + "," + (c.seconds == null ? -1 : Number(c.seconds)) + ")");
+    else if (c.cmd === "delete_marker") r = await evalJSX("usbdeck_delete_marker(" + q(c.guid) + ")");
+    else if (c.cmd === "open_sequence") r = await evalJSX("usbdeck_open_sequence(" + q(c.id) + ")");
+    else if (c.cmd === "import") r = await evalJSX("usbdeck_import(" + q(c.path) + "," + q(c.bin || "Logot") + "," + (c.timeline ? "true" : "false") + ")");
+    else if (c.cmd === "organize") r = await evalJSX("usbdeck_organize(" + (c.deep ? "true" : "false") + ")");
+    else if (c.cmd === "export") r = await evalJSX("usbdeck_export(" + q(c.preset) + "," + q(c.folder) + "," + (Number(c.range) || 0) + "," + (c.start ? "true" : "false") + ")");
+    await post("/api/ppro/result", { id: c.id, cmd: c.cmd, result: r });
+    return true;
+  }
+
+  async function loop() {
+    if (busy) return;
+    busy = true;
+    try {
+      tick++;
+      var withMarkers = (tick % 5 === 0);           // markers ~2x/sec, playhead ~10x/sec
+      var raw = await evalJSX("usbdeck_state(" + withMarkers + ")");
+      var state = null;
+      try { state = JSON.parse(raw); } catch (e) {}
+      var res = await post("/api/ppro/state", { state: state, markers: withMarkers });
+      var cmds = await res.json();
+      for (var i = 0; i < (cmds.commands || []).length; i++) { await runCommand(cmds.commands[i]); }
+      lastOk = Date.now();
+    } catch (e) { /* agent not running */ }
+    busy = false;
+    var on = Date.now() - lastOk < 2000;
+    document.getElementById("dot").className = "dot" + (on ? " on" : "");
+    document.getElementById("txt").textContent = on ? "lidhur me iPad-in" : "agjenti s'është hapur";
+  }
+  setInterval(loop, 100);
+</script>
+</body></html>

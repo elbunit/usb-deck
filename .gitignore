@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+pc-agent/profiles.json
+pc-agent/backups/
+ipad-app/build/
+ipad-app/*.xcodeproj/
+ipad-app/Support/
+.DS_Store
+pc-agent/brands.json
+pc-agent/timelog.json
+pc-agent/apps_cache.json
