@@ -2,85 +2,18 @@ import SwiftUI
 import UIKit
 
 /// "Folders": a drawer hidden on the right edge of the iPad, available from every screen.
-/// A small handle stays visible; drag it (or tap it) to slide the folders in.
 struct FoldersDrawer: View {
     @EnvironmentObject var conn: Connection
     @State private var open = false
-    @State private var dragX: CGFloat = 0
-    private let width: CGFloat = 400
 
     var body: some View {
-        ZStack(alignment: .trailing) {
-            if open {
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
-                    .onTapGesture { set(false) }
-                    .transition(.opacity)
-            }
-            HStack(spacing: 0) {
-                handle
-                FoldersPanel(onDone: { set(false) })
-                    .frame(width: width)
-                    .frame(maxHeight: .infinity)
-                    .background(
-                        Theme.panel
-                            .overlay(Rectangle().fill(Theme.stroke).frame(width: 1), alignment: .leading)
-                            .shadow(color: .black.opacity(open ? 0.5 : 0), radius: 24, x: -6)
-                            .ignoresSafeArea()
-                    )
-            }
-            .offset(x: offset)
-            .gesture(
-                DragGesture(minimumDistance: 6)
-                    .onChanged { v in dragX = v.translation.width }
-                    .onEnded { v in
-                        let predicted = v.predictedEndTranslation.width
-                        dragX = 0
-                        if open { set(!(predicted > width * 0.35)) } else { set(predicted < -width * 0.25) }
-                    }
-            )
+        EdgeDrawer(side: .trailing, size: 400, open: $open) { isOpen in
+            SideHandle(symbol: "folder.fill", open: isOpen, tint: Theme.accent,
+                       corners: [.topLeft, .bottomLeft], openSymbol: "chevron.right")
+        } content: {
+            FoldersPanel(onDone: { open = false })
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
-        .animation(.interactiveSpring(response: 0.32, dampingFraction: 0.86), value: open)
-        .animation(.interactiveSpring(response: 0.2, dampingFraction: 0.9), value: dragX)
-    }
-
-    private var offset: CGFloat {
-        let base: CGFloat = open ? 0 : width
-        return min(width, max(0, base + dragX))
-    }
-
-    private func set(_ v: Bool) {
-        if v && !open { conn.requestPaths() }
-        open = v
-    }
-
-    private var handle: some View {
-        Button { set(!open) } label: {
-            VStack(spacing: 6) {
-                Image(systemName: open ? "chevron.right" : "folder.fill")
-                    .font(.system(size: 14, weight: .bold))
-                Capsule().fill(Color.white.opacity(0.35)).frame(width: 3, height: 22)
-            }
-            .foregroundColor(.white)
-            .frame(width: 26, height: 96)
-            .background(
-                RoundedCornerShape(radius: 12)
-                    .fill(open ? Theme.panel : Theme.accent.opacity(0.85))
-            )
-            .shadow(color: .black.opacity(0.35), radius: 6, x: -2)
-        }
-        .buttonStyle(.plain)
-        .opacity(open ? 1 : 0.8)
-    }
-}
-
-/// Left-rounded tab shape for the handle.
-private struct RoundedCornerShape: Shape {
-    let radius: CGFloat
-    func path(in rect: CGRect) -> Path {
-        Path(UIBezierPath(roundedRect: rect, byRoundingCorners: [.topLeft, .bottomLeft],
-                          cornerRadii: CGSize(width: radius, height: radius)).cgPath)
+        .onChange(of: open) { v in if v { conn.requestPaths() } }
     }
 }
 

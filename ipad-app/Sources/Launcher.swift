@@ -2,17 +2,43 @@ import Combine
 import SwiftUI
 import UIKit
 
+/// "Programet" drawer on the LEFT edge of the iPad, available from every screen.
+struct ProgramsDrawer: View {
+    @EnvironmentObject var conn: Connection
+    @State private var open = false
+
+    var body: some View {
+        EdgeDrawer(side: .leading, size: 380, open: $open) { isOpen in
+            SideHandle(symbol: "square.grid.2x2.fill", open: isOpen, tint: Color(red: 0.55, green: 0.38, blue: 1),
+                       corners: [.topRight, .bottomRight], openSymbol: "chevron.left")
+        } content: {
+            LauncherView(onDone: { open = false })
+        }
+        .onChange(of: open) { v in if v { conn.requestLaunchers() } }
+    }
+}
+
 /// "Programet": open (or bring to front) PC programs with one tap.
 struct LauncherView: View {
     @EnvironmentObject var conn: Connection
+    let onDone: () -> Void
+    @AppStorage("usbdeck.programsPinned") private var pinned = false
     @State private var pressed: Int?
-    private let refresh = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
+
+    init(onDone: @escaping () -> Void) {
+        self.onDone = onDone
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
                 Text("Programet").font(.system(size: 22, weight: .bold))
                 Spacer()
+                Button { pinned.toggle() } label: {
+                    Image(systemName: pinned ? "pin.fill" : "pin")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(pinned ? Theme.accent : .white)
+                }
                 Button { conn.requestLaunchers() } label: {
                     Image(systemName: "arrow.clockwise").font(.system(size: 18, weight: .semibold))
                 }
@@ -34,7 +60,7 @@ struct LauncherView: View {
                 Spacer()
             } else {
                 ScrollView {
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 118), spacing: 12)], spacing: 12) {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 100), spacing: 10)], spacing: 12) {
                         ForEach(conn.launchers) { item in
                             tile(item)
                         }
@@ -47,8 +73,6 @@ struct LauncherView: View {
         }
         .padding(16)
         .foregroundColor(.white)
-        .onAppear { conn.requestLaunchers() }
-        .onReceive(refresh) { _ in conn.requestLaunchers() }
     }
 
     private func tile(_ item: LauncherItem) -> some View {
@@ -56,6 +80,7 @@ struct LauncherView: View {
             pressed = item.index
             conn.launch(item.index)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { pressed = nil }
+            if !pinned { DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { onDone() } }
         } label: {
             VStack(spacing: 10) {
                 Group {

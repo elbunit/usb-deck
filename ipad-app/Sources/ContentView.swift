@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 
 enum Tool: String, CaseIterable {
-    case premiere, scopes, mixer, music, screen, launcher, ai, beats, transfer, revisions, brands, projects, expressions, time, docs
+    case premiere, scopes, mixer, music, screen, ai, beats, transfer, revisions, brands, projects, expressions, time, docs
 
     var title: String {
         switch self {
@@ -13,7 +13,6 @@ enum Tool: String, CaseIterable {
         case .ai: return "Asistenti AI"
         case .beats: return "Ritmi"
         case .screen: return "Monitori"
-        case .launcher: return "Programet"
         case .transfer: return "Dërgo te PC"
         case .revisions: return "Korrigjime"
         case .brands: return "Brendet"
@@ -33,7 +32,6 @@ enum Tool: String, CaseIterable {
         case .ai: return "brain.head.profile"
         case .beats: return "metronome"
         case .screen: return "display"
-        case .launcher: return "square.grid.2x2.fill"
         case .transfer: return "square.and.arrow.up.on.square"
         case .revisions: return "checklist"
         case .brands: return "paintpalette.fill"
@@ -80,7 +78,6 @@ struct ContentView: View {
                         case .ai: AssistantView()
                         case .beats: BeatsView()
                         case .screen: ScreenView(fullscreen: $screenFull)
-                        case .launcher: LauncherView()
                         case .transfer: TransferView()
                         case .revisions: RevisionsView()
                         case .brands: BrandsView()
@@ -111,8 +108,14 @@ struct ContentView: View {
 
             // "Folders": hidden on the right edge, reachable from every screen
             if conn.config != nil && !screenFull {
-                FoldersDrawer()
-                    .zIndex(5)
+                // left: programs · right: folders · top: deck profiles
+                ProgramsDrawer().zIndex(5)
+                FoldersDrawer().zIndex(5)
+                ProfilesDrawer(activeHighlighted: tool == nil) { id in
+                    tool = nil
+                    conn.selectProfileManually(id)
+                }
+                .zIndex(5)
             }
 
             if let toast = conn.toast {
@@ -375,45 +378,13 @@ private struct Sidebar: View {
                 }
             }
 
-            Divider().background(Theme.stroke)
-
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 6) {
-                    ForEach(conn.profiles) { p in
-                        Button {
-                            tool = nil
-                            conn.selectProfileManually(p.id)
-                        } label: {
-                            HStack(spacing: 10) {
-                                Image(systemName: Symbols.valid(p.symbol) ?? "square.grid.2x2")
-                                    .frame(width: 22)
-                                Text(p.name)
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.7)
-                                Spacer(minLength: 0)
-                            }
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 10)
-                            .background(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(p.id == profile.id && tool == nil ? Color(hex: p.color, fallback: Theme.accent).opacity(0.9) : Color.clear)
-                            )
-                            .foregroundColor(.white)
-                        }
-                    }
-                }
-            }
-
             Spacer(minLength: 0)
 
-            Toggle(isOn: $conn.autoFollow) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Auto-profil").font(.system(size: 13, weight: .semibold))
-                    Text("ndjek app-in aktiv").font(.system(size: 10)).foregroundColor(Theme.textDim)
-                }
-            }
-            .toggleStyle(SwitchToggleStyle(tint: Theme.accent))
+            Text("⬆ Profilet · ⬅ Programet · ➡ Folders")
+                .font(.system(size: 10))
+                .foregroundColor(Theme.textDim)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
 
             HStack(spacing: 8) {
                 SidebarIconButton(symbol: showPanel ? "sidebar.right" : "sidebar.squares.right", active: showPanel) {
