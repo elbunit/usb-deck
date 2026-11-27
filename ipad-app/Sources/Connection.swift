@@ -350,9 +350,9 @@ final class Connection: ObservableObject {
             guard let ev = try? decoder.decode(RenderEvent.self, from: body) else { return }
             DispatchQueue.main.async {
                 switch ev.state {
-                case "started":
+                case "started", "progress":
                     self.renders[ev.path] = ev
-                case "done":
+                case "done", "failed":
                     self.renders.removeValue(forKey: ev.path)
                     withAnimation(.spring(response: 0.45, dampingFraction: 0.8)) { self.renderDone = ev }
                 default:

@@ -99,16 +99,24 @@ struct MixerMessage: Decodable { let mixer: MixerState }
 
 struct RenderEvent: Decodable, Equatable, Identifiable {
     var id = UUID()
-    let state: String          // "started" | "done" | "cancelled"
+    let state: String          // "started" | "progress" | "done" | "failed" | "cancelled"
     let path: String
     let name: String
     let folder: String?
     let size: String?
     let duration: String?
     let finished: String?
+    // progress ("progress" events) and failures ("failed")
+    let percent: Double?
+    let eta: String?
+    let written: String?
+    let elapsed: String?
+    let speed: String?
+    let reason: String?
+    let source: String?
 
     enum CodingKeys: String, CodingKey {
-        case state, path, name, folder, size, duration, finished
+        case state, path, name, folder, size, duration, finished, percent, eta, written, elapsed, speed, reason, source
     }
 }
 

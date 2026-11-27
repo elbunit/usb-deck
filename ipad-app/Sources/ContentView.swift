@@ -124,7 +124,24 @@ struct ContentView: View {
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
 
-            if let done = conn.renderDone {
+            // banners on top of everything (except the full-screen render screens)
+            VStack(spacing: 0) {
+                RenderProgressStrip(jobs: Array(conn.renders.values))
+                ExpiryBanner()
+                Spacer(minLength: 0)
+            }
+            .ignoresSafeArea(edges: .top)
+
+            if let done = conn.renderDone, done.state == "failed" {
+                RenderFailedOverlay(event: done,
+                                    onReveal: {
+                                        if !done.path.isEmpty { conn.reveal(done.path) }
+                                        withAnimation { conn.renderDone = nil }
+                                    },
+                                    onClose: { withAnimation { conn.renderDone = nil } })
+                    .transition(.opacity)
+                    .zIndex(10)
+            } else if let done = conn.renderDone {
                 RenderDoneOverlay(event: done,
                                   onReveal: {
                                       conn.reveal(done.path)
@@ -344,13 +361,8 @@ private struct Sidebar: View {
                     .lineLimit(1)
             }
 
-            VStack(spacing: 0) {
-                ExpiryBanner()
-                Spacer(minLength: 0)
-            }
-
             if !conn.renders.isEmpty {
-                RenderingBadge(names: conn.renders.values.map { $0.name }.sorted())
+                RenderingBadge(jobs: conn.renders.values.sorted { $0.name < $1.name })
             }
 
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 5), GridItem(.flexible(), spacing: 5),

@@ -314,6 +314,17 @@ final class Fanfare {
                                                     (783.99, 0.55), (1046.5, 0.66)], tail: 1.3)
     private lazy var short: Data = Self.make(notes: [(783.99, 0.0), (1046.5, 0.12)], tail: 0.9)
 
+    private lazy var alarmData: Data = Self.make(notes: [(880, 0.0), (622.25, 0.18), (880, 0.36), (622.25, 0.54),
+                                                         (880, 0.72), (622.25, 0.9)], tail: 0.5)
+
+    func alarm() {
+        try? AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
+        try? AVAudioSession.sharedInstance().setActive(true)
+        player = try? AVAudioPlayer(data: alarmData)
+        player?.volume = 1
+        player?.play()
+    }
+
     func play(short isShort: Bool) {
         try? AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
         try? AVAudioSession.sharedInstance().setActive(true)
@@ -354,35 +365,257 @@ final class Fanfare {
     }
 }
 
-/// Small "rendering…" indicator for the sidebar.
+/// Sidebar card: one row per render in progress, with a real progress bar when the
+/// percentage is known (Media Encoder via the Premiere panel), otherwise a moving
+/// "busy" bar plus elapsed time, MB written and write speed.
 struct RenderingBadge: View {
-    let names: [String]
-    @State private var blink = false
+    let jobs: [RenderEvent]
 
-    init(names: [String]) {
-        self.names = names
+    init(jobs: [RenderEvent]) {
+        self.jobs = jobs
     }
 
     var body: some View {
-        HStack(spacing: 8) {
-            Circle()
-                .fill(Theme.bad)
-                .frame(width: 9, height: 9)
-                .opacity(blink ? 0.25 : 1)
-                .animation(.easeInOut(duration: 0.7).repeatForever(), value: blink)
-            VStack(alignment: .leading, spacing: 1) {
-                Text("Duke renderuar…")
+        VStack(alignment: .leading, spacing: 9) {
+            HStack(spacing: 6) {
+                PulsingDot()
+                Text(jobs.count > 1 ? "Duke renderuar (\(jobs.count))" : "Duke renderuar…")
                     .font(.system(size: 12, weight: .bold))
-                Text(names.joined(separator: ", "))
-                    .font(.system(size: 10))
-                    .foregroundColor(Theme.textDim)
-                    .lineLimit(1)
+            }
+            ForEach(jobs.prefix(3), id: \.path) { j in
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(j.name)
+                        .font(.system(size: 11, weight: .semibold))
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    RenderBar(percent: j.percent, height: 6)
+                    HStack(spacing: 4) {
+                        if let p = j.percent {
+                            Text("\(Int(p.rounded()))%").font(.system(size: 11, weight: .heavy))
+                        }
+                        Text(detail(j))
+                            .font(.system(size: 10))
+                            .foregroundColor(Theme.textDim)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                    }
+                }
             }
         }
         .padding(.horizontal, 10)
-        .padding(.vertical, 7)
+        .padding(.vertical, 9)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Theme.bad.opacity(0.14)))
-        .onAppear { blink = true }
+        .background(RoundedRectangle(cornerRadius: 10).fill(Theme.accent.opacity(0.13)))
+        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Theme.accent.opacity(0.35), lineWidth: 1))
+    }
+
+    private func detail(_ j: RenderEvent) -> String {
+        var parts: [String] = []
+        if let eta = j.eta { parts.append("mbeten \(eta)") }
+        if let e = j.elapsed { parts.append(e) }
+        if let w = j.written { parts.append(w) }
+        if j.percent == nil, let sp = j.speed { parts.append(sp) }
+        return parts.joined(separator: " · ")
+    }
+}
+
+/// Thin bar across the very top of the screen, visible in every tool while rendering.
+struct RenderProgressStrip: View {
+    let jobs: [RenderEvent]
+
+    init(jobs: [RenderEvent]) {
+        self.jobs = jobs
+    }
+
+    var body: some View {
+        if jobs.isEmpty {
+            EmptyView()
+        } else {
+            let known = jobs.compactMap { $0.percent }
+            RenderBar(percent: known.count == jobs.count ? known.min() : nil, height: 4, rounded: false)
+                .allowsHitTesting(false)
+                .transition(.opacity)
+        }
+    }
+}
+
+/// Determinate (percent) or indeterminate (sliding glow) progress bar.
+struct RenderBar: View {
+    let percent: Double?
+    var height: CGFloat = 6
+    var rounded = true
+    @State private var slide = false
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Rectangle().fill(Color.white.opacity(0.1))
+                if let p = percent {
+                    Rectangle()
+                        .fill(LinearGradient(colors: [Theme.accent, Color(red: 0.2, green: 0.95, blue: 0.7)],
+                                             startPoint: .leading, endPoint: .trailing))
+                        .frame(width: geo.size.width * CGFloat(max(0.02, min(1, p / 100))))
+                        .animation(.easeOut(duration: 0.6), value: p)
+                } else {
+                    Rectangle()
+                        .fill(LinearGradient(colors: [.clear, Theme.accent, Color(red: 0.2, green: 0.95, blue: 0.7), .clear],
+                                             startPoint: .leading, endPoint: .trailing))
+                        .frame(width: geo.size.width * 0.35)
+                        .offset(x: slide ? geo.size.width : -geo.size.width * 0.35)
+                        .animation(.linear(duration: 1.4).repeatForever(autoreverses: false), value: slide)
+                        .onAppear { slide = true }
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: rounded ? height / 2 : 0))
+        }
+        .frame(height: height)
+    }
+}
+
+private struct PulsingDot: View {
+    @State private var on = false
+    var body: some View {
+        Circle()
+            .fill(Theme.bad)
+            .frame(width: 9, height: 9)
+            .opacity(on ? 0.25 : 1)
+            .animation(.easeInOut(duration: 0.7).repeatForever(), value: on)
+            .onAppear { on = true }
+    }
+}
+
+/// Full-screen RED alarm: the render failed, was cancelled, or the program closed mid-render.
+struct RenderFailedOverlay: View {
+    let event: RenderEvent
+    let onReveal: () -> Void
+    let onClose: () -> Void
+
+    @State private var strobe = false
+    @State private var shake = false
+    @State private var iconIn = false
+    @State private var previousBrightness: CGFloat = 0.8
+    @State private var reminders = 0
+    private let reminderTimer = Timer.publish(every: 20, on: .main, in: .common).autoconnect()
+
+    init(event: RenderEvent, onReveal: @escaping () -> Void, onClose: @escaping () -> Void) {
+        self.event = event
+        self.onReveal = onReveal
+        self.onClose = onClose
+    }
+
+    var body: some View {
+        ZStack {
+            LinearGradient(colors: [Color(red: 0.55, green: 0.02, blue: 0.06), Color(red: 0.18, green: 0.0, blue: 0.02)],
+                           startPoint: .top, endPoint: .bottom)
+                .ignoresSafeArea()
+            // hazard stripes along the edges
+            VStack { Hazard(); Spacer(); Hazard() }.ignoresSafeArea()
+            Color.red.opacity(strobe ? 0.45 : 0).ignoresSafeArea().allowsHitTesting(false)
+
+            VStack(spacing: 22) {
+                ZStack {
+                    Circle().fill(Color.white.opacity(0.12)).frame(width: 190, height: 190)
+                        .scaleEffect(strobe ? 1.12 : 0.92)
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 104, weight: .bold))
+                        .foregroundColor(.white)
+                        .shadow(color: .red, radius: 30)
+                }
+                .scaleEffect(iconIn ? 1 : 0.2)
+                .rotationEffect(.degrees(shake ? 4 : -4))
+
+                Text("RENDER-I DËSHTOI")
+                    .font(.system(size: 54, weight: .black, design: .rounded))
+                    .foregroundColor(.white)
+                    .shadow(color: .red.opacity(0.9), radius: 18)
+                Text(event.name)
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.92))
+                    .lineLimit(2).multilineTextAlignment(.center).padding(.horizontal, 60)
+                if let reason = event.reason, !reason.isEmpty {
+                    Text(reason)
+                        .font(.system(size: 17, weight: .medium))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(4)
+                        .padding(.horizontal, 22).padding(.vertical, 12)
+                        .background(RoundedRectangle(cornerRadius: 14).fill(Color.black.opacity(0.35)))
+                        .padding(.horizontal, 80)
+                }
+                HStack(spacing: 12) {
+                    if let e = event.elapsed { chip("timer", "pas \(e)") }
+                    if let w = event.written { chip("internaldrive.fill", w) }
+                    if let f = event.finished { chip("clock.fill", f) }
+                }
+                HStack(spacing: 14) {
+                    if !event.path.isEmpty {
+                        Button(action: onReveal) {
+                            Label("Hap dosjen në PC", systemImage: "folder.fill")
+                                .font(.system(size: 18, weight: .bold))
+                                .padding(.horizontal, 24).padding(.vertical, 14)
+                                .background(Capsule().fill(Color.white.opacity(0.16)))
+                                .foregroundColor(.white)
+                        }
+                    }
+                    Button(action: onClose) {
+                        Text("E kuptova")
+                            .font(.system(size: 18, weight: .heavy))
+                            .padding(.horizontal, 40).padding(.vertical, 14)
+                            .background(Capsule().fill(Color.white))
+                            .foregroundColor(Color(red: 0.6, green: 0.02, blue: 0.08))
+                    }
+                }
+                .padding(.top, 6)
+            }
+        }
+        .contentShape(Rectangle())
+        .onTapGesture { onClose() }
+        .onAppear {
+            previousBrightness = UIScreen.main.brightness
+            UIScreen.main.brightness = 1.0
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.5)) { iconIn = true }
+            withAnimation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true)) { strobe = true }
+            withAnimation(.easeInOut(duration: 0.09).repeatCount(12, autoreverses: true)) { shake = true }
+            Fanfare.shared.alarm()
+        }
+        .onDisappear { UIScreen.main.brightness = previousBrightness }
+        .onReceive(reminderTimer) { _ in
+            guard reminders < 3 else { return }
+            reminders += 1
+            Fanfare.shared.alarm()
+        }
+    }
+
+    private func chip(_ symbol: String, _ text: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: Symbols.valid(symbol) ?? "circle.fill")
+            Text(text)
+        }
+        .font(.system(size: 16, weight: .semibold))
+        .padding(.horizontal, 14).padding(.vertical, 8)
+        .background(Capsule().fill(Color.black.opacity(0.3)))
+        .foregroundColor(.white)
+    }
+}
+
+private struct Hazard: View {
+    @State private var move = false
+    var body: some View {
+        GeometryReader { geo in
+            HStack(spacing: 0) {
+                ForEach(0..<Int(geo.size.width / 28) + 3, id: \.self) { i in
+                    Rectangle().fill(i % 2 == 0 ? Color.yellow : Color.black)
+                        .frame(width: 28)
+                }
+            }
+            .rotation3DEffect(.degrees(0), axis: (x: 0, y: 0, z: 1))
+            .transformEffect(CGAffineTransform(a: 1, b: 0, c: -0.6, d: 1, tx: 0, ty: 0))
+            .offset(x: move ? -56 : 0)
+            .animation(.linear(duration: 0.8).repeatForever(autoreverses: false), value: move)
+            .onAppear { move = true }
+        }
+        .frame(height: 16)
+        .clipped()
+        .opacity(0.85)
     }
 }
