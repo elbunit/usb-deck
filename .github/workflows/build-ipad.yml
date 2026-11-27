@@ -1,0 +1,55 @@
+name: Build iPad app (.ipa)
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: macos-14
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        working-directory: ipad-app
+        run: xcodegen generate
+
+      - name: Build (unsigned)
+        working-directory: ipad-app
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project USBDeck.xcodeproj \
+            -scheme USBDeck \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build | tee xcodebuild.log
+
+      - name: Package .ipa
+        run: |
+          APP=$(find ipad-app/build/Build/Products/Release-iphoneos -maxdepth 1 -name "*.app" | head -n 1)
+          echo "App: $APP"
+          mkdir -p dist/Payload
+          cp -R "$APP" dist/Payload/
+          cd dist && zip -qry USBDeck.ipa Payload && ls -lh USBDeck.ipa
+
+      - name: Upload .ipa
+        uses: actions/upload-artifact@v4
+        with:
+          name: USBDeck-ipa
+          path: dist/USBDeck.ipa
+
+      - name: Upload build log (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: ipad-app/xcodebuild.log
