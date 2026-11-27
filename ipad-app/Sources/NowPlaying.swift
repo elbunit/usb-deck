@@ -86,15 +86,22 @@ struct MusicView: View {
     var body: some View {
         ZStack {
             // Blurred cover as background
-            if let img = np.cover {
-                Image(uiImage: img)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .blur(radius: 60)
-                    .opacity(0.45)
-                    .clipped()
-                    .ignoresSafeArea()
-            }
+            // Color.clear takes only the space offered; the cover fills it without
+            // growing the view (a bare .fill image pushed the sidebar off screen).
+            Color.clear
+                .overlay(
+                    Group {
+                        if let img = np.cover {
+                            Image(uiImage: img)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .blur(radius: 60)
+                                .opacity(0.45)
+                        }
+                    }
+                )
+                .clipped()
+                .allowsHitTesting(false)
             LinearGradient(colors: [Color.black.opacity(0.2), Color.black.opacity(0.75)], startPoint: .top, endPoint: .bottom)
 
             if !np.available {
@@ -111,6 +118,7 @@ struct MusicView: View {
                 .padding(32)
             }
         }
+        .clipped()
         .foregroundColor(.white)
     }
 
@@ -118,9 +126,8 @@ struct MusicView: View {
         ZStack {
             RoundedRectangle(cornerRadius: 20, style: .continuous).fill(Theme.raised)
             if let img = np.cover {
-                Image(uiImage: img)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
+                Color.clear
+                    .overlay(Image(uiImage: img).resizable().aspectRatio(contentMode: .fill))
                     .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
             } else {
                 Image(systemName: "music.note")

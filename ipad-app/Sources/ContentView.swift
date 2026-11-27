@@ -92,6 +92,7 @@ struct ContentView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .clipped()
                     if !screenFull {
                         QuickBar(openMusic: { tool = .music })
                     }
